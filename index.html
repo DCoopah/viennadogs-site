@@ -968,7 +968,7 @@
       </div>
       <div class="footer-col">
         <div class="footer-heading">Contact Us</div>
-        <p>📧 <a href="mailto:walkers.vienna.dogs@gmail.com">walkers.vienna.dogs@gmail.com</a></p>
+        <p>📧 <a href="/cdn-cgi/l/email-protection#4730262b2c22353469312e22292926692328203407202a262e2b6924282a"><span class="__cf_email__" data-cfemail="4d3a2c2126283f3e633b242823232c6329222a3e0d2a202c2421632e2220">[email&#160;protected]</span></a></p>
         <p>📞 <a href="tel:+17038995913">(703) 899-5913</a></p>
       </div>
       <div class="footer-col">
@@ -1076,7 +1076,7 @@
 <div id="toast"></div>
 
 <!-- Google Places (loaded dynamically) -->
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   // ══════════════════════════════════════
   // ★ CONFIG — replace these values ★
   // ══════════════════════════════════════
@@ -1609,7 +1609,7 @@
 
       // Find bookings on this date
       const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const dayBookings = allBookings.filter(b => b.walk_date === dateStr && b.status !== 'denied');
+      const dayBookings = allBookings.filter(b => b.walk_date === dateStr && b.status !== 'denied' && b.status !== 'cancelled');
 
       dayBookings.forEach(b => {
         const ev = document.createElement('div');
@@ -1923,16 +1923,46 @@
   async function cancelBooking(id, email, dogName, walkDate) {
     if (!confirm(`Cancel your walk for ${dogName} on ${walkDate}? This cannot be undone.`)) return;
     try {
+      const { data: bData, error: bErr } = await sb.from('bookings').select('*').eq('id', id).single();
+      if (bErr) throw bErr;
+
       const { error } = await sb.from('bookings').update({ status: 'cancelled' }).eq('id', id);
       if (error) throw error;
 
-      // Email owner
+      const custName = bData.customer_name || 'Valued Customer';
+
+      // Email to customer — sorry to see you go
+      await sendEmailTo(email, custName, {
+        to_name:        custName,
+        customer_name:  custName,
+        customer_email: email,
+        dog_name:       dogName,
+        walk_date:      walkDate,
+        start_time:     fmtTimeTrack(bData.start_time),
+        duration:       bData.duration || '',
+        address:        bData.address || '',
+        walk_day:       bData.walk_day || '',
+        dog_count:      bData.dog_count || '',
+        dog_size:       bData.dog_size || '',
+        payment_method: bData.payment_method || 'Cash',
+        price:          calcPriceFromBooking(bData),
+        status_message: `We're sorry to see you go! Your walk for ${dogName} on ${walkDate} has been successfully cancelled. We would love to know why — feel free to reply to this email with any feedback. Hope to see you and ${dogName} again soon! Visit walkers.dog to rebook anytime.`,
+      });
+
+      // Email to owner — cancellation notification
       await sendEmail({
-        customer_name: email, customer_email: email,
-        dog_name: dogName, walk_date: walkDate,
-        status_message: `A customer has cancelled their booking for ${dogName} on ${walkDate}.`,
-        address: '', dog_count: '', dog_size: '', walk_day: '',
-        start_time: '', duration: '', payment_method: '', price: '',
+        customer_name:  custName,
+        customer_email: email,
+        dog_name:       dogName,
+        walk_date:      walkDate,
+        start_time:     fmtTimeTrack(bData.start_time),
+        duration:       bData.duration || '',
+        address:        bData.address || '',
+        walk_day:       bData.walk_day || '',
+        dog_count:      bData.dog_count || '',
+        dog_size:       bData.dog_size || '',
+        payment_method: bData.payment_method || 'Cash',
+        price:          calcPriceFromBooking(bData),
       });
 
       document.getElementById('track-btn').click();
@@ -1972,13 +2002,4 @@
 
   // ══════════════════════════════════════
   // TOAST
-  // ══════════════════════════════════════
-  function showToast(msg, type = '') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `show ${type}`;
-    setTimeout(() => { t.className = ''; }, 3500);
-  }
-</script>
-</body>
-</html>
+  // ══════════════════════════�
