@@ -427,8 +427,84 @@
   #success-screen h2 { font-family: 'DM Serif Display', serif; font-size: 1.8rem; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
   #success-screen p { color: var(--mid-gray); max-width: 400px; margin: 0 auto; line-height: 1.7; }
 
-  /* ══════════════════════════════════════
-     DASHBOARD SCREEN
+  /* TRACK BOOKING */
+  .track-wrap { max-width: 700px; margin: 0 auto 3rem; padding: 0 1.5rem; }
+  .track-card {
+    background: var(--white); border: 1px solid var(--warm-gray);
+    border-radius: 20px; padding: 2rem 2.5rem;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.06);
+  }
+  .btn-track {
+    background: var(--dark); color: var(--white); border: none;
+    border-radius: 10px; padding: 0.7rem 1.5rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-track:hover { background: var(--brown); }
+  .btn-track-link {
+    display: inline-block; margin-top: 1.25rem;
+    background: transparent; border: 1.5px solid var(--warm-gray);
+    border-radius: 100px; padding: 0.45rem 1.2rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.83rem;
+    font-weight: 500; color: var(--mid-gray); cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-track-link:hover { border-color: var(--brown); color: var(--brown); }
+
+  .booking-result-card {
+    background: var(--cream); border: 1.5px solid var(--warm-gray);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    animation: fadeUp 0.3s ease;
+  }
+  .booking-result-card .res-status {
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.22rem 0.7rem; border-radius: 100px; margin-bottom: 0.75rem;
+  }
+  .res-status.pending  { background: rgba(201,168,76,0.15);  color: var(--gold); }
+  .res-status.approved { background: rgba(122,140,110,0.15); color: var(--sage); }
+  .res-status.denied   { background: rgba(185,74,58,0.15);   color: var(--red);  }
+  .res-row { font-size: 0.88rem; color: var(--dark); margin-bottom: 0.35rem; }
+  .res-row span { color: var(--mid-gray); margin-right: 0.4rem; }
+  .btn-cancel-booking {
+    margin-top: 1rem; background: transparent;
+    border: 1.5px solid var(--red); color: var(--red);
+    border-radius: 9px; padding: 0.55rem 1.2rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-cancel-booking:hover { background: rgba(185,74,58,0.08); }
+
+  /* FOOTER */
+  .site-footer {
+    background: var(--dark); color: var(--white);
+    padding: 3rem 2rem 1.5rem;
+  }
+  .footer-inner {
+    max-width: 900px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.5fr 1fr 1.5fr;
+    gap: 2rem; margin-bottom: 2rem;
+  }
+  @media (max-width: 600px) { .footer-inner { grid-template-columns: 1fr; } }
+  .footer-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+  }
+  .footer-logo span { color: var(--brown); font-style: italic; }
+  .footer-tagline { font-size: 0.83rem; color: var(--mid-gray); }
+  .footer-heading {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--sage); margin-bottom: 0.75rem;
+  }
+  .footer-col p { font-size: 0.85rem; color: #9B9590; line-height: 1.7; }
+  .footer-col a { color: #9B9590; text-decoration: none; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--white); }
+  .footer-col strong { color: var(--white); }
+  .footer-bottom {
+    max-width: 900px; margin: 0 auto;
+    border-top: 1px solid #2A2A28; padding-top: 1.25rem;
+    font-size: 0.78rem; color: #5A5A58; text-align: center;
+  }
   ══════════════════════════════════════ */
   #dashboard-screen {
     background: var(--dbg);
@@ -527,6 +603,7 @@
   .booking-card.status-pending  { border-left: 3px solid var(--dgold); }
   .booking-card.status-approved { border-left: 3px solid var(--dsage); }
   .booking-card.status-denied   { border-left: 3px solid var(--dred); opacity: 0.65; }
+  .booking-card.status-cancelled { border-left: 3px solid var(--dmid); opacity: 0.5; }
 
   .card-head {
     padding: 1.2rem 1.5rem; display: flex; align-items: flex-start;
@@ -863,8 +940,44 @@
       <div class="success-icon">🐾</div>
       <h2>Walk Requested!</h2>
       <p>You'll receive an email shortly confirming your booking is under review. We'll reach out to approve or suggest an alternative time.</p>
+      <button class="btn-track-link" onclick="document.getElementById('track-section').scrollIntoView({behavior:'smooth'})">Track my booking ↓</button>
     </div>
   </div>
+
+  <!-- TRACK MY BOOKING -->
+  <div class="track-wrap" id="track-section">
+    <div class="track-card">
+      <div class="section-label" style="color:var(--sage);">Track My Booking</div>
+      <p style="font-size:0.88rem;color:var(--mid-gray);margin-bottom:1.25rem;">Enter the email you used to book and we'll show your booking status.</p>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <div class="field" style="flex:1;min-width:200px;">
+          <input type="email" id="track-email" placeholder="your@email.com"/>
+        </div>
+        <button class="btn-track" id="track-btn" type="button">Look Up</button>
+      </div>
+      <div id="track-result" style="margin-top:1.25rem;"></div>
+    </div>
+  </div>
+
+  <!-- CANCELLATION POLICY & CONTACT -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">Vienna<span> Dog Walking</span></div>
+        <p class="footer-tagline">Professional dog walking in Vienna, VA.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-heading">Contact Us</div>
+        <p>📧 <a href="mailto:walkers.vienna.dogs@gmail.com">walkers.vienna.dogs@gmail.com</a></p>
+        <p>📞 <a href="tel:+17038995913">(703) 899-5913</a></p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-heading">Cancellation Policy</div>
+        <p>Cancellations must be made at least <strong>24 hours in advance</strong> for a full refund. Cancellations within 24 hours will be charged 50% of the booking fee.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 Vienna Dog Walking · walkers.dog</div>
+  </footer>
 
 </div><!-- /booking-screen -->
 
@@ -929,6 +1042,7 @@
         <button class="filter-btn" data-filter="pending">Pending</button>
         <button class="filter-btn" data-filter="approved">Approved</button>
         <button class="filter-btn" data-filter="denied">Denied</button>
+        <button class="filter-btn" data-filter="cancelled">Cancelled</button>
       </div>
       <div id="bookings-list">
         <div class="loading-dots">Loading bookings…</div>
@@ -1735,6 +1849,97 @@
       showToast('Something went wrong. Please try again.', 'error');
       if (acceptBtn) acceptBtn.disabled = false;
       if (denyBtn)   denyBtn.disabled   = false;
+    }
+  }
+
+  // ══════════════════════════════════════
+  // TRACK MY BOOKING
+  // ══════════════════════════════════════
+  document.getElementById('track-btn').addEventListener('click', async () => {
+    const email = document.getElementById('track-email').value.trim();
+    const result = document.getElementById('track-result');
+    if (!email) { result.innerHTML = '<p style="color:var(--red);font-size:0.85rem;">Please enter your email.</p>'; return; }
+
+    result.innerHTML = '<p style="font-size:0.85rem;color:var(--mid-gray);">Looking up your booking…</p>';
+
+    try {
+      const { data, error } = await sb
+        .from('bookings')
+        .select('*')
+        .eq('customer_email', email)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        result.innerHTML = '<p style="font-size:0.85rem;color:var(--red);">No bookings found for that email.</p>';
+        return;
+      }
+
+      result.innerHTML = data.map(b => {
+        const canCancel = b.status === 'pending' || b.status === 'approved';
+        const walkDate = b.walk_date ? new Date(b.walk_date + 'T12:00:00') : null;
+        const hoursUntil = walkDate ? (walkDate - new Date()) / 36e5 : null;
+        const cancelOk = canCancel && hoursUntil !== null && hoursUntil >= 24;
+
+        return `<div class="booking-result-card" style="margin-bottom:0.75rem;">
+          <span class="res-status ${b.status || 'pending'}">${b.status || 'pending'}</span>
+          <div class="res-row"><span>🐕 Dog(s):</span>${b.dog_name || '—'} (${b.dog_size || '—'})</div>
+          <div class="res-row"><span>🗓 Date:</span>${b.walk_date || '—'}</div>
+          <div class="res-row"><span>⏱ Time:</span>${fmtTimeTrack(b.start_time)} for ${b.duration} min</div>
+          <div class="res-row"><span>📍 Address:</span>${b.address || '—'}</div>
+          <div class="res-row"><span>💵 Price:</span>${calcPriceFromBooking(b)}</div>
+          ${cancelOk ? `<button class="btn-cancel-booking" onclick="cancelBooking(${b.id}, '${b.customer_email}', '${b.dog_name}', '${b.walk_date}')">Cancel Booking</button>` : ''}
+          ${canCancel && !cancelOk && hoursUntil !== null && hoursUntil < 24 ? '<p style="font-size:0.78rem;color:var(--red);margin-top:0.5rem;">Cancellation window has passed (less than 24 hours away).</p>' : ''}
+        </div>`;
+      }).join('');
+
+    } catch (err) {
+      console.error(err);
+      result.innerHTML = '<p style="font-size:0.85rem;color:var(--red);">Something went wrong. Please try again.</p>';
+    }
+  });
+
+  function fmtTimeTrack(t) {
+    if (!t) return '—';
+    const [h, m] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const dh = h > 12 ? h - 12 : h === 0 ? 12 : h;
+    return `${dh}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  function calcPriceFromBooking(b) {
+    const durMins  = parseInt(b.duration) || 0;
+    const dogCount = parseInt(b.dog_count) || 1;
+    const dogSizes = (b.dog_size || '').split(', ');
+    const base     = 10;
+    const durFee   = DURATION_FEES[durMins] || 0;
+    const dogFee   = dogCount >= 2 ? (EXTRA_DOG_FEES[dogCount] || 10) : 0;
+    const sizeFee  = dogSizes.reduce((sum, s) => sum + (SIZE_FEES[s.trim()] || 0), 0);
+    return `$${(base + durFee + dogFee + sizeFee).toFixed(2)}`;
+  }
+
+  async function cancelBooking(id, email, dogName, walkDate) {
+    if (!confirm(`Cancel your walk for ${dogName} on ${walkDate}? This cannot be undone.`)) return;
+    try {
+      const { error } = await sb.from('bookings').update({ status: 'cancelled' }).eq('id', id);
+      if (error) throw error;
+
+      // Email owner
+      await sendEmail({
+        customer_name: email, customer_email: email,
+        dog_name: dogName, walk_date: walkDate,
+        status_message: `A customer has cancelled their booking for ${dogName} on ${walkDate}.`,
+        address: '', dog_count: '', dog_size: '', walk_day: '',
+        start_time: '', duration: '', payment_method: '', price: '',
+      });
+
+      document.getElementById('track-btn').click();
+      showToast('Your booking has been cancelled.', 'error');
+    } catch (err) {
+      console.error(err);
+      showToast('Something went wrong. Please try again.', 'error');
     }
   }
 
