@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🐕 Vienna Dog Walking — Book a Walk</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐕</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ══════════════════════════════════════
+     SHARED TOKENS
+  ══════════════════════════════════════ */
+  :root {
+    --cream:     #FAF7F2;
+    --dark:      #1A1A18;
+    --brown:     #6B4E3D;
+    --sage:      #7A8C6E;
+    --gold:      #C9A84C;
+    --warm-gray: #E8E3DC;
+    --mid-gray:  #9B9590;
+    --red:       #B94A3A;
+    --white:     #FFFFFF;
+
+    /* dashboard dark tokens */
+    --dbg:      #12100E;
+    --dsurf:    #1C1916;
+    --dsurf2:   #252018;
+    --dborder:  #2E2922;
+    --dcream:   #FAF7F2;
+    --dbrown:   #C9A07A;
+    --dsage:    #7A9E7E;
+    --dgold:    #C9A84C;
+    --dred:     #C0533E;
+    --dmid:     #7A7268;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-6px); }
+    40%     { transform: translateX(6px); }
+    60%     { transform: translateX(-4px); }
+    80%     { transform: translateX(4px); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ══════════════════════════════════════
+     BOOKING PAGE — body & nav
+  ══════════════════════════════════════ */
+  body {
+    background: var(--cream);
+    color: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* hide dashboard by default */
+  #dashboard-screen { display: none; }
+
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    background: var(--cream);
+    border-bottom: 1px solid var(--warm-gray);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .nav-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    color: var(--dark);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--brown); font-style: italic; }
+
+  .nav-right { display: flex; align-items: center; gap: 1.25rem; }
+
+  .nav-link {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--mid-gray);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-link:hover { color: var(--brown); }
+
+  .btn-owner {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    background: transparent;
+    border: 1.5px solid var(--warm-gray);
+    border-radius: 8px;
+    padding: 0.38rem 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mid-gray);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-owner:hover { border-color: var(--brown); color: var(--brown); }
+
+  /* ══════════════════════════════════════
+     OWNER LOGIN MODAL
+  ══════════════════════════════════════ */
+  #owner-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(26,26,24,0.5);
+    backdrop-filter: blur(5px);
+    z-index: 9000;
+    align-items: center; justify-content: center;
+    padding: 2rem;
+    animation: fadeIn 0.2s ease;
+  }
+  #owner-modal-overlay.open { display: flex; }
+
+  .owner-modal {
+    background: var(--white);
+    border: 1px solid var(--warm-gray);
+    border-radius: 20px;
+    padding: 2.5rem;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.14);
+    animation: fadeUp 0.25s ease both;
+    text-align: center;
+  }
+  .owner-modal-paw { font-size: 2rem; margin-bottom: 1rem; display: block; }
+  .owner-modal h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+  }
+  .owner-modal h2 span { color: var(--brown); font-style: italic; }
+  .owner-modal p { font-size: 0.83rem; color: var(--mid-gray); margin-bottom: 1.5rem; }
+
+  .owner-modal input[type="password"] {
+    width: 100%;
+    background: var(--cream);
+    border: 1.5px solid var(--warm-gray);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--dark);
+    outline: none;
+    transition: border-color 0.2s;
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+  .owner-modal input[type="password"]:focus { border-color: var(--brown); }
+  .owner-modal input[type="password"].shake { animation: shake 0.35s ease; border-color: var(--red); }
+
+  .modal-error {
+    font-size: 0.78rem; color: var(--red);
+    margin-bottom: 0.75rem; min-height: 1rem; display: none;
+  }
+  .modal-error.visible { display: block; }
+
+  .btn-modal-login {
+    width: 100%;
+    background: var(--dark); color: var(--white);
+    border: none; border-radius: 10px;
+    padding: 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    margin-bottom: 0.75rem;
+  }
+  .btn-modal-login:hover { background: var(--brown); }
+
+  .btn-modal-cancel {
+    background: transparent; border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; color: var(--mid-gray);
+    cursor: pointer; transition: color 0.2s;
+  }
+  .btn-modal-cancel:hover { color: var(--dark); }
+
+  /* ══════════════════════════════════════
+     BOOKING PAGE — hero & form
+  ══════════════════════════════════════ */
+  #booking-screen { display: block; }
+
+  .hero {
+    padding: 5rem 2rem 3rem;
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    display: inline-block;
+    font-size: 0.74rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--sage);
+    background: rgba(122,140,110,0.1);
+    border: 1px solid rgba(122,140,110,0.25);
+    padding: 0.3rem 0.9rem; border-radius: 100px;
+    margin-bottom: 1.25rem;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.15; letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+  .hero h1 em { font-style: italic; color: var(--brown); }
+  .hero p { font-size: 1rem; color: var(--mid-gray); max-width: 480px; margin: 0 auto; line-height: 1.7; }
+
+  .notice { max-width: 700px; margin: 0 auto 2rem; padding: 0 1.5rem; }
+  .notice-box {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 10px; padding: 0.85rem 1.25rem;
+    display: flex; align-items: center; gap: 0.75rem;
+    font-size: 0.875rem; color: var(--brown); font-weight: 500;
+  }
+
+  .form-wrap { max-width: 700px; margin: 0 auto 5rem; padding: 0 1.5rem; }
+
+  .form-card {
+    background: var(--white);
+    border: 1px solid var(--warm-gray);
+    border-radius: 20px; overflow: hidden;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.06);
+  }
+
+  .form-section {
+    padding: 2rem 2.5rem;
+    border-bottom: 1px solid var(--warm-gray);
+    animation: fadeUp 0.5s ease both;
+  }
+  .form-section:last-of-type { border-bottom: none; }
+  .form-section:nth-child(2) { animation-delay: 0.05s; }
+  .form-section:nth-child(3) { animation-delay: 0.10s; }
+  .form-section:nth-child(4) { animation-delay: 0.15s; }
+  .form-section:nth-child(5) { animation-delay: 0.20s; }
+
+  .section-label {
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--sage); margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--warm-gray); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  @media (max-width: 560px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .form-section { padding: 1.5rem; }
+  }
+
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field label { font-size: 0.82rem; font-weight: 500; color: var(--dark); }
+  .field label .req { color: var(--gold); margin-left: 2px; }
+
+  .field input, .field select {
+    width: 100%;
+    background: var(--cream); border: 1.5px solid var(--warm-gray);
+    border-radius: 10px; padding: 0.7rem 1rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; color: var(--dark);
+    transition: border-color 0.2s, box-shadow 0.2s; outline: none; appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--brown);
+    box-shadow: 0 0 0 3px rgba(107,78,61,0.1);
+    background: var(--white);
+  }
+  .field input::placeholder { color: var(--mid-gray); }
+  .field .hint { font-size: 0.76rem; color: var(--mid-gray); }
+  .field .error-msg { font-size: 0.76rem; color: var(--red); display: none; }
+  .field.has-error input, .field.has-error select { border-color: var(--red); }
+  .field.has-error .error-msg { display: block; }
+
+  .address-subgrid {
+    display: grid; grid-template-columns: 1fr 1fr 120px;
+    gap: 0.75rem; margin-top: 0.75rem;
+  }
+  @media (max-width: 560px) { .address-subgrid { grid-template-columns: 1fr; } }
+
+  /* size cards */
+  .size-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; }
+  @media (max-width: 480px) { .size-cards { grid-template-columns: 1fr 1fr; } }
+  .size-card input[type="radio"] { display: none; }
+  .size-card label {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.35rem; padding: 1rem 0.75rem;
+    background: var(--cream); border: 1.5px solid var(--warm-gray);
+    border-radius: 12px; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .size-card label:hover { border-color: var(--brown); }
+  .size-card input:checked + label {
+    border-color: var(--brown); background: rgba(107,78,61,0.06);
+    box-shadow: 0 0 0 3px rgba(107,78,61,0.1);
+  }
+  .size-card .icon { font-size: 1.75rem; line-height: 1; }
+  .size-card .name { font-size: 0.82rem; font-weight: 600; color: var(--dark); }
+  .size-card .range { font-size: 0.72rem; color: var(--mid-gray); }
+
+  /* duration */
+  .duration-opts { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.65rem; }
+  @media (max-width: 480px) { .duration-opts { grid-template-columns: 1fr 1fr; } }
+  .dur-opt input[type="radio"] { display: none; }
+  .dur-opt label {
+    display: block; text-align: center; padding: 0.65rem 0.5rem;
+    background: var(--cream); border: 1.5px solid var(--warm-gray);
+    border-radius: 10px; cursor: pointer; font-size: 0.88rem;
+    font-weight: 500; color: var(--dark); transition: all 0.2s;
+  }
+  .dur-opt label:hover { border-color: var(--brown); }
+  .dur-opt input:checked + label {
+    border-color: var(--brown); background: rgba(107,78,61,0.06);
+    box-shadow: 0 0 0 3px rgba(107,78,61,0.1); color: var(--brown);
+  }
+
+  /* day pills */
+  .day-pills { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .day-pill input[type="radio"] { display: none; }
+  .day-pill label {
+    padding: 0.45rem 1rem;
+    background: var(--cream); border: 1.5px solid var(--warm-gray);
+    border-radius: 100px; font-size: 0.83rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; color: var(--dark); user-select: none;
+  }
+  .day-pill label:hover { border-color: var(--brown); }
+  .day-pill input:checked + label { background: var(--brown); border-color: var(--brown); color: var(--white); }
+
+  /* time slots */
+  #time-slots-wrap { margin-top: 1rem; display: none; }
+  #time-slots-wrap.visible { display: block; }
+  .time-slots-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+  .time-slot-btn {
+    padding: 0.4rem 0.9rem; background: var(--cream);
+    border: 1.5px solid var(--warm-gray); border-radius: 8px;
+    font-size: 0.83rem; font-weight: 500; cursor: pointer;
+    color: var(--dark); transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .time-slot-btn:hover { border-color: var(--brown); }
+  .time-slot-btn.active { background: var(--brown); border-color: var(--brown); color: var(--white); }
+
+  /* payment */
+  .payment-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; width: 100%; }
+  .pay-opt { width: 100%; }
+  .pay-opt input[type="radio"] { display: none; }
+  .pay-opt label {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.85rem 1rem; background: var(--cream);
+    border: 1.5px solid var(--warm-gray); border-radius: 10px;
+    cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: all 0.2s;
+  }
+  .pay-opt label:hover { border-color: var(--brown); }
+  .pay-opt input:checked + label {
+    border-color: var(--brown); background: rgba(107,78,61,0.06);
+    box-shadow: 0 0 0 3px rgba(107,78,61,0.1);
+  }
+
+  /* summary */
+  #summary-box {
+    background: var(--cream); border: 1.5px solid var(--warm-gray);
+    border-radius: 12px; padding: 1.25rem 1.5rem;
+    display: none; flex-direction: column; gap: 0.6rem; margin-top: 1rem;
+  }
+  #summary-box.visible { display: flex; }
+  .sum-row { display: flex; justify-content: space-between; font-size: 0.88rem; }
+  .sum-key { color: var(--mid-gray); }
+  .sum-val { font-weight: 500; }
+  .sum-divider { height: 1px; background: var(--warm-gray); margin: 0.25rem 0; }
+
+  /* footer */
+  .form-footer {
+    padding: 1.75rem 2.5rem;
+    border-top: 1px solid var(--warm-gray);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+  }
+  .footer-note { font-size: 0.8rem; color: var(--mid-gray); max-width: 320px; line-height: 1.5; }
+
+  .btn-submit {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--dark); color: var(--white); border: none;
+    border-radius: 12px; padding: 0.85rem 2rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-submit:hover { background: var(--brown); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(107,78,61,0.25); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.4); border-top-color: white;
+    border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
+  }
+  .btn-submit.loading .spinner { display: block; }
+  .btn-submit.loading .btn-text { opacity: 0.7; }
+
+  /* success */
+  #success-screen { display: none; text-align: center; padding: 4rem 2rem; }
+  #success-screen.visible { display: block; }
+  .success-icon {
+    width: 72px; height: 72px;
+    background: rgba(122,140,110,0.12); border: 2px solid var(--sage);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem; font-size: 2rem;
+  }
+  #success-screen h2 { font-family: 'DM Serif Display', serif; font-size: 1.8rem; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+  #success-screen p { color: var(--mid-gray); max-width: 400px; margin: 0 auto; line-height: 1.7; }
+
+  /* ══════════════════════════════════════
+     DASHBOARD SCREEN
+  ══════════════════════════════════════ */
+  #dashboard-screen {
+    background: var(--dbg);
+    color: var(--dcream);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  .dash-topbar {
+    background: var(--dsurf);
+    border-bottom: 1px solid var(--dborder);
+    padding: 0 2rem; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .dash-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem; letter-spacing: -0.02em; color: var(--dcream);
+  }
+  .dash-logo span { color: var(--dbrown); font-style: italic; }
+  .dash-tag {
+    font-family: 'DM Sans', sans-serif; font-size: 0.72rem;
+    color: var(--dmid); font-weight: 400; font-style: normal;
+    letter-spacing: 0.07em; text-transform: uppercase; margin-left: 0.6rem;
+  }
+  .dash-topbar-right { display: flex; align-items: center; gap: 1rem; }
+  .pending-pill { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--dmid); }
+  .badge-count {
+    background: var(--dgold); color: var(--dbg);
+    font-size: 0.7rem; font-weight: 700;
+    padding: 0.18rem 0.52rem; border-radius: 100px; min-width: 20px; text-align: center;
+  }
+  .btn-dash-back {
+    background: transparent; border: 1px solid var(--dborder);
+    color: var(--dmid); border-radius: 8px;
+    padding: 0.38rem 0.85rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.78rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-dash-back:hover { border-color: var(--dmid); color: var(--dcream); }
+
+  .dash-main { max-width: 1000px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+  .dash-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+  }
+  .dash-header h2 { font-family: 'DM Serif Display', serif; font-size: 1.8rem; letter-spacing: -0.02em; color: var(--dcream); }
+  .dash-header .sub { font-size: 0.83rem; color: var(--dmid); margin-top: 0.3rem; }
+
+  .btn-clear-denied {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: transparent; border: 1px solid var(--dred);
+    color: var(--dred); border-radius: 8px; padding: 0.5rem 0.9rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-clear-denied:hover { background: rgba(192,83,62,0.1); }
+
+  .btn-refresh {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: var(--dsurf); border: 1px solid var(--dborder);
+    color: var(--dmid); border-radius: 8px; padding: 0.5rem 0.9rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-refresh:hover { border-color: var(--dmid); color: var(--dcream); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2rem; }
+  @media (max-width: 560px) { .stats-row { grid-template-columns: 1fr; } }
+  .stat-card { background: var(--dsurf); border: 1px solid var(--dborder); border-radius: 14px; padding: 1.25rem 1.5rem; }
+  .stat-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--dmid); margin-bottom: 0.5rem; }
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 2.2rem; letter-spacing: -0.03em; line-height: 1; }
+  .stat-num.gold  { color: var(--dgold); }
+  .stat-num.green { color: var(--dsage); }
+  .stat-num.white { color: var(--dcream); }
+
+  .filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .filter-btn {
+    background: var(--dsurf); border: 1px solid var(--dborder);
+    color: var(--dmid); border-radius: 100px; padding: 0.38rem 1rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: var(--dmid); color: var(--dcream); }
+  .filter-btn.active { background: var(--dbrown); border-color: var(--dbrown); color: var(--dbg); }
+
+  #bookings-list { display: flex; flex-direction: column; gap: 1rem; }
+
+  .booking-card {
+    background: var(--dsurf); border: 1px solid var(--dborder);
+    border-radius: 16px; overflow: hidden; transition: border-color 0.2s;
+    animation: fadeUp 0.3s ease both;
+  }
+  .booking-card:hover { border-color: #3E372E; }
+  .booking-card.status-pending  { border-left: 3px solid var(--dgold); }
+  .booking-card.status-approved { border-left: 3px solid var(--dsage); }
+  .booking-card.status-denied   { border-left: 3px solid var(--dred); opacity: 0.65; }
+
+  .card-head {
+    padding: 1.2rem 1.5rem; display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 1rem; cursor: pointer; user-select: none;
+  }
+  .card-id { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dmid); margin-bottom: 0.25rem; }
+  .card-name { font-family: 'DM Serif Display', serif; font-size: 1.12rem; color: var(--dcream); }
+  .card-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.45rem; }
+  .meta-chip { font-size: 0.74rem; font-weight: 500; background: var(--dsurf2); border: 1px solid var(--dborder); border-radius: 6px; padding: 0.18rem 0.55rem; color: var(--dcream); }
+  .card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.45rem; flex-shrink: 0; }
+  .status-badge { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; padding: 0.22rem 0.7rem; border-radius: 100px; }
+  .status-badge.pending  { background: rgba(201,168,76,0.15);  color: var(--dgold); }
+  .status-badge.approved { background: rgba(122,158,126,0.15); color: var(--dsage); }
+  .status-badge.denied   { background: rgba(192,83,62,0.15);   color: var(--dred);  }
+  .card-date    { font-size: 0.76rem; color: var(--dmid); }
+  .card-chevron { color: var(--dmid); font-size: 0.95rem; transition: transform 0.25s; }
+  .booking-card.expanded .card-chevron { transform: rotate(180deg); }
+
+  .card-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; border-top: 1px solid transparent; }
+  .booking-card.expanded .card-body { max-height: 600px; border-top-color: var(--dborder); }
+  .card-body-inner { padding: 1.25rem 1.5rem 1.5rem; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1.5rem; margin-bottom: 1.25rem; }
+  @media (max-width: 500px) { .detail-grid { grid-template-columns: 1fr; } }
+  .detail-key { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dmid); margin-bottom: 0.18rem; }
+  .detail-val { font-size: 0.88rem; color: var(--dcream); font-weight: 500; }
+
+  .card-actions { display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: center; }
+  .btn-accept, .btn-deny, .btn-sms {
+    padding: 0.6rem 1.3rem; border-radius: 9px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.86rem; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s;
+  }
+  .btn-accept { background: var(--dsage); color: var(--dbg); }
+  .btn-accept:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-deny { background: transparent; border: 1.5px solid var(--dred); color: var(--dred); }
+  .btn-deny:hover { background: rgba(192,83,62,0.1); }
+  .btn-sms { background: var(--dsurf2); border: 1px solid var(--dborder); color: var(--dmid); margin-left: auto; }
+  .btn-sms:hover { border-color: var(--dmid); color: var(--dcream); }
+  .btn-accept:disabled, .btn-deny:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  /* VIEW TABS */
+  .view-tabs {
+    display: flex; gap: 0.5rem; margin-bottom: 1.75rem;
+    border-bottom: 1px solid var(--dborder); padding-bottom: 0;
+  }
+  .view-tab {
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    color: var(--dmid); font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem; font-weight: 600; padding: 0.6rem 1rem;
+    cursor: pointer; transition: all 0.2s; margin-bottom: -1px;
+  }
+  .view-tab:hover { color: var(--dcream); }
+  .view-tab.active { color: var(--dbrown); border-bottom-color: var(--dbrown); }
+
+  /* CALENDAR */
+  .cal-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+  .cal-nav-btn {
+    background: var(--dsurf); border: 1px solid var(--dborder);
+    color: var(--dcream); border-radius: 8px;
+    width: 36px; height: 36px; font-size: 1.2rem;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cal-nav-btn:hover { border-color: var(--dbrown); color: var(--dbrown); }
+  .cal-month-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem; color: var(--dcream); letter-spacing: -0.02em;
+  }
+
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 2px; background: var(--dborder);
+    border: 1px solid var(--dborder); border-radius: 14px; overflow: hidden;
+  }
+
+  .cal-day-header {
+    background: var(--dsurf2); padding: 0.5rem;
+    text-align: center; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--dmid);
+  }
+
+  .cal-day {
+    background: var(--dsurf); min-height: 90px;
+    padding: 0.4rem; display: flex; flex-direction: column; gap: 0.25rem;
+    position: relative;
+  }
+  .cal-day.other-month { background: var(--dbg); opacity: 0.5; }
+  .cal-day.today { background: var(--dsurf2); }
+  .cal-day.today .cal-day-num { color: var(--dbrown); font-weight: 700; }
+
+  .cal-day-num {
+    font-size: 0.78rem; font-weight: 500; color: var(--dmid);
+    line-height: 1;
+  }
+
+  .cal-event {
+    background: rgba(122,158,126,0.2); border-left: 2px solid var(--dsage);
+    border-radius: 4px; padding: 0.2rem 0.35rem;
+    font-size: 0.68rem; color: var(--dcream); cursor: pointer;
+    transition: background 0.15s; line-height: 1.3;
+  }
+  .cal-event:hover { background: rgba(122,158,126,0.35); }
+  .cal-event.pending {
+    background: rgba(201,168,76,0.15); border-left-color: var(--dgold);
+  }
+  .cal-event.pending:hover { background: rgba(201,168,76,0.25); }
+  .cal-event .ev-name { font-weight: 600; }
+  .cal-event .ev-time { color: var(--dmid); }
+
+  .cal-legend {
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-top: 1rem; font-size: 0.78rem; color: var(--dmid);
+  }
+  .cal-dot {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  }
+  .cal-dot.approved { background: var(--dsage); }
+  .cal-dot.pending  { background: var(--dgold); }
+
+  /* WALK DETAIL POPUP */
+  #cal-popup {
+    display: none; position: fixed; z-index: 5000;
+    background: var(--dsurf); border: 1px solid var(--dborder);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    max-width: 320px; width: 90%;
+    animation: fadeUp 0.2s ease;
+  }
+  #cal-popup.visible { display: block; }
+  .popup-close {
+    position: absolute; top: 0.75rem; right: 0.75rem;
+    background: transparent; border: none; color: var(--dmid);
+    font-size: 1.1rem; cursor: pointer;
+  }
+  .popup-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem; color: var(--dcream); margin-bottom: 0.75rem;
+  }
+  .popup-row { font-size: 0.83rem; color: var(--dmid); margin-bottom: 0.35rem; }
+  .popup-row strong { color: var(--dcream); }
+
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--dmid); }
+  .empty-state .ei { font-size: 2.2rem; margin-bottom: 0.75rem; }
+  .empty-state p { font-size: 0.88rem; }
+  .loading-dots { text-align: center; padding: 3rem; color: var(--dmid); font-size: 0.9rem; }
+
+  /* ══════════════════════════════════════
+     SHARED TOAST
+  ══════════════════════════════════════ */
+  #toast {
+    position: fixed; bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--dark); color: white;
+    padding: 0.75rem 1.5rem; border-radius: 100px;
+    font-size: 0.875rem; font-weight: 500;
+    opacity: 0; transition: all 0.3s;
+    pointer-events: none; z-index: 9999; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.success { background: #7A9E7E; color: #12100E; }
+  #toast.error   { background: #C0533E; color: white; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     BOOKING SCREEN
+══════════════════════════════════════ -->
+<div id="booking-screen">
+
+  <nav>
+    <a href="/" class="nav-logo">Vienna<span> Dog Walking</span></a>
+    <div class="nav-right">
+      <a href="/" class="nav-link">← Home</a>
+      <button class="btn-owner" id="owner-login-btn">🔐 Owner</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-eyebrow">🐾 Professional Dog Walking</div>
+    <h1>Book Your Dog's<br/><em>Perfect Walk</em></h1>
+    <p>Reservations must be made at least one week in advance. We'll confirm your booking via email within 24 hours.</p>
+  </section>
+
+  <div class="notice">
+    <div class="notice-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      All bookings require a minimum 7-day advance notice and are subject to approval.
+    </div>
+  </div>
+
+  <div class="form-wrap">
+    <div class="form-card" id="booking-form-card">
+
+      <!-- SECTION 1: Your Info -->
+      <div class="form-section">
+        <div class="section-label">Your Information</div>
+        <div class="grid-2">
+          <div class="field" id="f-name">
+            <label>Full Name <span class="req">*</span></label>
+            <input type="text" id="customer_name" placeholder="Jane Smith" autocomplete="name"/>
+            <span class="error-msg">Please enter your name.</span>
+          </div>
+          <div class="field" id="f-email">
+            <label>Email Address <span class="req">*</span></label>
+            <input type="email" id="customer_email" placeholder="you@email.com" autocomplete="email"/>
+            <span class="error-msg">Please enter a valid email address.</span>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="field" id="f-address">
+            <label>Street Address <span class="req">*</span></label>
+            <input type="text" id="address_street" placeholder="1511 Gingerwood Ct" autocomplete="street-address"/>
+            <span class="error-msg">Please enter your street address.</span>
+          </div>
+          <div class="address-subgrid">
+            <div class="field" id="f-city">
+              <label>City <span class="req">*</span></label>
+              <input type="text" id="address_city" placeholder="Vienna" autocomplete="address-level2"/>
+              <span class="error-msg">Required.</span>
+            </div>
+            <div class="field" id="f-state">
+              <label>State <span class="req">*</span></label>
+              <input type="text" id="address_state" placeholder="VA" maxlength="2" autocomplete="address-level1"/>
+              <span class="error-msg">Required.</span>
+            </div>
+            <div class="field" id="f-zip">
+              <label>ZIP <span class="req">*</span></label>
+              <input type="text" id="address_zip" placeholder="22182" maxlength="5" autocomplete="postal-code"/>
+              <span class="error-msg">Required.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: Dog Info -->
+      <div class="form-section">
+        <div class="section-label">About Your Dog(s)</div>
+        <div class="grid-2">
+          <div class="field" id="f-dogname">
+            <label>Dog Name(s) <span class="req">*</span></label>
+            <input type="text" id="dog_name" placeholder="Buddy, Daisy…"/>
+            <span class="error-msg">Please enter your dog's name.</span>
+          </div>
+          <div class="field" id="f-dogcount">
+            <label>Number of Dogs <span class="req">*</span></label>
+            <select id="dog_count">
+              <option value="">Select…</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+            </select>
+            <span class="error-msg">Please select dog count.</span>
+          </div>
+        </div>
+        <div style="margin-top:1.25rem;">
+          <div class="field" id="f-dogsize">
+            <label>Dog Size(s) <span class="req">*</span></label>
+            <span class="error-msg" style="margin-bottom:0.5rem;">Please select a size for each dog.</span>
+            <div id="dog-size-container" style="margin-top:0.5rem;display:flex;flex-direction:column;gap:1rem;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: Walk Details -->
+      <div class="form-section">
+        <div class="section-label">Walk Details</div>
+        <div class="field" id="f-duration" style="margin-bottom:1.5rem;">
+          <label>Walk Duration <span class="req">*</span></label>
+          <span class="error-msg">Please select a duration.</span>
+          <div class="duration-opts" style="margin-top:0.5rem;">
+            <div class="dur-opt"><input type="radio" name="duration" id="dur-30" value="30"/><label for="dur-30">30 min</label></div>
+            <div class="dur-opt"><input type="radio" name="duration" id="dur-45" value="45"/><label for="dur-45">45 min</label></div>
+            <div class="dur-opt"><input type="radio" name="duration" id="dur-60" value="60"/><label for="dur-60">60 min</label></div>
+            <div class="dur-opt"><input type="radio" name="duration" id="dur-90" value="90"/><label for="dur-90">90 min</label></div>
+          </div>
+        </div>
+        <div class="field" id="f-walkdate" style="margin-bottom:1.5rem;">
+          <label>Walk Date <span class="req">*</span></label>
+          <input type="date" id="walk_date"/>
+          <span class="hint" id="date-hint">Must be at least 7 days from today. Only available days can be selected.</span>
+          <span class="error-msg">Please pick a valid date on an available day.</span>
+        </div>
+        <div id="time-slots-wrap">
+          <div class="field" id="f-time">
+            <label>Preferred Start Time <span class="req">*</span></label>
+            <span class="error-msg">Please select a start time.</span>
+            <div class="time-slots-grid" id="time-slots-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 4: Payment -->
+      <div class="form-section">
+        <div class="section-label">Payment Method</div>
+        <p style="font-size:0.88rem;color:var(--mid-gray);">Payment is by <strong style="color:var(--dark);">cash only</strong>, due at the time of the walk.</p>
+      </div>
+
+      <!-- SECTION 5: Summary -->
+      <div class="form-section">
+        <div class="section-label">Booking Summary</div>
+        <div id="summary-box">
+          <div class="sum-row"><span class="sum-key">Dog(s)</span><span class="sum-val" id="sum-dog">—</span></div>
+          <div class="sum-row"><span class="sum-key">Size</span><span class="sum-val" id="sum-size">—</span></div>
+          <div class="sum-row"><span class="sum-key">Duration</span><span class="sum-val" id="sum-dur">—</span></div>
+          <div class="sum-row"><span class="sum-key">Day(s)</span><span class="sum-val" id="sum-days">—</span></div>
+          <div class="sum-row"><span class="sum-key">Start Time</span><span class="sum-val" id="sum-time">—</span></div>
+          <div class="sum-row"><span class="sum-key">Walk Date</span><span class="sum-val" id="sum-date">—</span></div>
+          <div class="sum-divider"></div>
+          <div class="sum-row"><span class="sum-key">Base Price</span><span class="sum-val" id="sum-price-base">—</span></div>
+          <div class="sum-row"><span class="sum-key">Duration Fee</span><span class="sum-val" id="sum-price-dur">—</span></div>
+          <div class="sum-row"><span class="sum-key">Extra Dogs</span><span class="sum-val" id="sum-price-dogs">—</span></div>
+          <div class="sum-row"><span class="sum-key">Size Fee</span><span class="sum-val" id="sum-price-size">—</span></div>
+          <div class="sum-divider"></div>
+          <div class="sum-row"><span class="sum-key" style="font-weight:600;color:var(--dark);">Total</span><span class="sum-val" id="sum-total" style="font-weight:700;font-size:1.1rem;color:var(--brown);">—</span></div>
+          <div class="sum-divider"></div>
+          <div class="sum-row"><span class="sum-key">Status</span><span class="sum-val" style="color:var(--gold);">Pending Approval</span></div>
+        </div>
+        <p style="font-size:0.82rem;color:var(--mid-gray);margin-top:0.75rem;">Fill in your details above to see a summary.</p>
+      </div>
+
+      <div class="form-footer">
+        <p class="footer-note">By submitting, you agree to our cancellation policy. You'll receive an email once your walk is verified.</p>
+        <button class="btn-submit" id="submit-btn" type="button">
+          <span class="btn-text">Request Walk</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+    </div>
+
+    <div id="success-screen">
+      <div class="success-icon">🐾</div>
+      <h2>Walk Requested!</h2>
+      <p>You'll receive an email shortly confirming your booking is under review. We'll reach out to approve or suggest an alternative time.</p>
+    </div>
+  </div>
+
+</div><!-- /booking-screen -->
+
+<!-- ══════════════════════════════════════
+     OWNER LOGIN MODAL
+══════════════════════════════════════ -->
+<div id="owner-modal-overlay">
+  <div class="owner-modal">
+    <span class="owner-modal-paw">🐾</span>
+    <h2>Vienna<span> Dog Walking</span></h2>
+    <p>Enter your password to open the owner dashboard</p>
+    <input type="password" id="modal-pw" placeholder="Password" autocomplete="current-password"/>
+    <div class="modal-error" id="modal-error">Incorrect password. Try again.</div>
+    <button class="btn-modal-login" id="modal-login-btn">Open Dashboard</button><br/>
+    <button class="btn-modal-cancel" id="modal-cancel-btn">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     DASHBOARD SCREEN
+══════════════════════════════════════ -->
+<div id="dashboard-screen">
+
+  <div class="dash-topbar">
+    <div class="dash-logo">Vienna<span> Dog Walking</span><span class="dash-tag">Dashboard</span></div>
+    <div class="dash-topbar-right">
+      <div class="pending-pill">
+        <span class="badge-count" id="pending-badge">0</span>
+        <span>pending</span>
+      </div>
+      <button class="btn-dash-back" id="back-to-booking-btn">← Back to Booking</button>
+    </div>
+  </div>
+
+  <div class="dash-main">
+    <div class="dash-header">
+      <div>
+        <h2 id="dash-title">Booking Requests</h2>
+        <p class="sub" id="last-refresh">Loading…</p>
+      </div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button class="btn-refresh" id="refresh-btn">↻ Refresh</button>
+        <button class="btn-clear-denied" id="clear-denied-btn">🗑 Clear Denied</button>
+      </div>
+    </div>
+
+    <!-- VIEW TABS -->
+    <div class="view-tabs">
+      <button class="view-tab active" data-view="bookings">📋 Bookings</button>
+      <button class="view-tab" data-view="calendar">📅 Calendar</button>
+    </div>
+
+    <!-- BOOKINGS VIEW -->
+    <div id="bookings-view">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-num gold" id="stat-pending">—</div></div>
+        <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-num green" id="stat-approved">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-num white" id="stat-total">—</div></div>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="pending">Pending</button>
+        <button class="filter-btn" data-filter="approved">Approved</button>
+        <button class="filter-btn" data-filter="denied">Denied</button>
+      </div>
+      <div id="bookings-list">
+        <div class="loading-dots">Loading bookings…</div>
+      </div>
+    </div>
+
+    <!-- CALENDAR VIEW -->
+    <div id="calendar-view" style="display:none;">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" id="cal-prev">‹</button>
+        <div class="cal-month-label" id="cal-month-label">March 2026</div>
+        <button class="cal-nav-btn" id="cal-next">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <span class="cal-dot approved"></span> Approved
+        <span class="cal-dot pending" style="margin-left:1rem;"></span> Pending
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /dashboard-screen -->
+
+<div id="cal-popup">
+  <button class="popup-close" id="popup-close">✕</button>
+  <div class="popup-title" id="popup-title">Walk Details</div>
+  <div id="popup-body"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Google Places (loaded dynamically) -->
+<script>
+  // ══════════════════════════════════════
+  // ★ CONFIG — replace these values ★
+  // ══════════════════════════════════════
+  const SUPABASE_URL        = 'https://bjytdggbaffflmwxeeol.supabase.co';
+  const SUPABASE_ANON_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqeXRkZ2diYWZmZmxtd3hlZW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMDE3NDcsImV4cCI6MjA4ODU3Nzc0N30.w2ujaxMIIm-9wmZWJlcsyPhZACsw3h3GSVQ_A0HNcRY';
+  const OWNER_PASSWORD      = 'viennadogs';
+  const OWNER_EMAIL         = 'daniel.cooper.tell@gmail.com';
+
+  // EmailJS credentials
+  const EJS_PUBLIC_KEY      = 'bcrZQPAr-fIpyYlSr';
+  const EJS_SERVICE_ID      = 'service_gi477ux';
+  const EJS_OWNER_TEMPLATE    = 'template_ipwvxjz';   // sends to you
+  const EJS_CUSTOMER_TEMPLATE = 'template_1x5aswf'; // sends to customer
+
+  // Init EmailJS
+  emailjs.init(EJS_PUBLIC_KEY);
+
+  // ══════════════════════════════════════
+  // SUPABASE
+  // ══════════════════════════════════════
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ══════════════════════════════════════
+  // SCREEN SWITCHING
+  // ══════════════════════════════════════
+  const bookingScreen   = document.getElementById('booking-screen');
+  const dashboardScreen = document.getElementById('dashboard-screen');
+
+  function showBooking() {
+    bookingScreen.style.display   = 'block';
+    dashboardScreen.style.display = 'none';
+    document.body.style.background = 'var(--cream)';
+  }
+  function showDashboard() {
+    bookingScreen.style.display   = 'none';
+    dashboardScreen.style.display = 'block';
+    document.body.style.background = 'var(--dbg)';
+    loadBookings();
+  }
+
+  document.getElementById('back-to-booking-btn').addEventListener('click', () => {
+    sessionStorage.removeItem('wd_auth');
+    showBooking();
+  });
+
+  // ══════════════════════════════════════
+  // OWNER LOGIN MODAL
+  // ══════════════════════════════════════
+  const overlay   = document.getElementById('owner-modal-overlay');
+  const modalPw   = document.getElementById('modal-pw');
+  const modalErr  = document.getElementById('modal-error');
+
+  document.getElementById('owner-login-btn').addEventListener('click', () => {
+    overlay.classList.add('open');
+    setTimeout(() => modalPw.focus(), 100);
+  });
+
+  document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+  function closeModal() {
+    overlay.classList.remove('open');
+    modalPw.value = '';
+    modalPw.classList.remove('shake');
+    modalErr.classList.remove('visible');
+  }
+
+  function tryOwnerLogin() {
+    if (modalPw.value === OWNER_PASSWORD) {
+      sessionStorage.setItem('wd_auth', '1');
+      closeModal();
+      showDashboard();
+    } else {
+      modalPw.classList.remove('shake');
+      void modalPw.offsetWidth;
+      modalPw.classList.add('shake');
+      modalErr.classList.add('visible');
+      modalPw.value = '';
+    }
+  }
+
+  document.getElementById('modal-login-btn').addEventListener('click', tryOwnerLogin);
+  modalPw.addEventListener('keydown', e => { if (e.key === 'Enter') tryOwnerLogin(); });
+  modalPw.addEventListener('input', () => { modalPw.classList.remove('shake'); modalErr.classList.remove('visible'); });
+
+  // Stay on dashboard if already authenticated
+  if (sessionStorage.getItem('wd_auth') === '1') showDashboard();
+
+  // ══════════════════════════════════════
+  // GOOGLE AUTOCOMPLETE
+  // ══════════════════════════════════════
+  // ══════════════════════════════════════
+  // AVAILABILITY & TIME SLOTS
+  // ══════════════════════════════════════
+  const AVAILABILITY = {
+    Monday:    { open: '15:30', close: '17:30' },
+    Tuesday:   { open: '17:30', close: '19:00' },
+    Wednesday: { open: '15:30', close: '19:00' },
+    Thursday:  { open: '15:30', close: '17:30' },
+    Friday:    { open: '17:30', close: '19:00' },
+    Saturday:  { open: '09:00', close: '22:00' },
+    Sunday:    { open: '09:00', close: '20:00' },
+  };
+  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const AVAILABLE_DAYS = Object.keys(AVAILABILITY);
+
+  let selectedTime = null;
+
+  function timeToMins(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+  function minsToDisplay(m) {
+    const h = Math.floor(m/60), min = m%60, ampm = h>=12?'PM':'AM';
+    const dh = h>12?h-12:h===0?12:h;
+    return `${dh}:${String(min).padStart(2,'0')} ${ampm}`;
+  }
+  function getDayNameFromDate(dateStr) {
+    if (!dateStr) return null;
+    return DAY_NAMES[new Date(dateStr+'T12:00:00').getDay()];
+  }
+  function getSelectedDays() {
+    const d = getDayNameFromDate(walkDateInput.value);
+    return d ? [d] : [];
+  }
+  function getDurationMins() {
+    const r = document.querySelector('input[name="duration"]:checked');
+    return r ? parseInt(r.value) : 30;
+  }
+
+  // Set calendar min/max
+  const walkDateInput = document.getElementById('walk_date');
+  const minDate = new Date(); minDate.setDate(minDate.getDate() + 7);
+  walkDateInput.min = minDate.toISOString().split('T')[0];
+  const maxDate = new Date(); maxDate.setMonth(maxDate.getMonth() + 6);
+  walkDateInput.max = maxDate.toISOString().split('T')[0];
+
+  walkDateInput.addEventListener('change', function() {
+    const dayName = getDayNameFromDate(this.value);
+    if (!dayName || !AVAILABLE_DAYS.includes(dayName)) {
+      showToast(`Sorry, ${dayName || 'that day'} is not available. Please pick a different date.`, 'error');
+      this.value = '';
+      selectedTime = null;
+      document.getElementById('time-slots-wrap').classList.remove('visible');
+      setError('f-walkdate', true);
+      return;
+    }
+    setError('f-walkdate', false);
+    updateTimeSlots();
+    updateSummary();
+  });
+
+  function updateTimeSlots() {
+    const dayName = getDayNameFromDate(walkDateInput.value);
+    const wrap = document.getElementById('time-slots-wrap');
+    const grid = document.getElementById('time-slots-grid');
+    if (!dayName || !AVAILABILITY[dayName]) { wrap.classList.remove('visible'); return; }
+    const av = AVAILABILITY[dayName];
+    const openMins  = timeToMins(av.open);
+    const closeMins = timeToMins(av.close);
+    grid.innerHTML = ''; selectedTime = null;
+    const dur = getDurationMins();
+    for (let t = openMins; t + dur <= closeMins; t += 30) {
+      const btn = document.createElement('button');
+      btn.className = 'time-slot-btn'; btn.type = 'button';
+      btn.textContent = minsToDisplay(t);
+      btn.dataset.time = `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedTime = btn.dataset.time;
+        updateSummary();
+      });
+      grid.appendChild(btn);
+    }
+    wrap.classList.add('visible');
+  }
+
+  document.querySelectorAll('input[name="duration"]').forEach(r => r.addEventListener('change', () => { updateTimeSlots(); updateSummary(); }));
+  // ══════════════════════════════════════
+  function renderDogSizes(count) {
+    const container = document.getElementById('dog-size-container');
+    container.innerHTML = '';
+    const sizes = [
+      { value: 'Small',  icon: '🐩', range: 'Under 25 lbs' },
+      { value: 'Medium', icon: '🐕', range: '25–60 lbs' },
+      { value: 'Large',  icon: '🦮', range: '60+ lbs' },
+    ];
+    for (let i = 0; i < count; i++) {
+      const label = count === 1 ? 'Your Dog' : `Dog ${i + 1}`;
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `<div style="font-size:0.8rem;font-weight:600;color:var(--mid-gray);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.06em;">${label}</div>
+        <div class="size-cards">
+          ${sizes.map(s => `
+            <div class="size-card">
+              <input type="radio" name="dog_size_${i}" id="sz-${i}-${s.value}" value="${s.value}"/>
+              <label for="sz-${i}-${s.value}">
+                <span class="icon">${s.icon}</span>
+                <span class="name">${s.value}</span>
+                <span class="range">${s.range}</span>
+              </label>
+            </div>`).join('')}
+        </div>`;
+      container.appendChild(wrap);
+      // Hook size change to update summary & price
+      wrap.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', updateSummary));
+    }
+  }
+
+  function getSelectedSizes() {
+    const count = parseInt(document.getElementById('dog_count').value) || 0;
+    const sizes = [];
+    for (let i = 0; i < count; i++) {
+      const r = document.querySelector(`input[name="dog_size_${i}"]:checked`);
+      if (r) sizes.push(r.value);
+    }
+    return sizes;
+  }
+
+  document.getElementById('dog_count').addEventListener('change', function() {
+    const count = parseInt(this.value) || 0;
+    if (count > 0) renderDogSizes(count);
+    else document.getElementById('dog-size-container').innerHTML = '';
+    updateSummary();
+  });
+
+  // Initialize with 1 dog size picker
+  renderDogSizes(1);
+
+  // Event delegation — catches size changes even after re-render
+  document.getElementById('dog-size-container').addEventListener('change', updateSummary);
+
+
+  // ══════════════════════════════════════
+  // PRICING
+  // ══════════════════════════════════════
+  const DURATION_FEES = { 30: 15, 45: 22.50, 60: 30, 90: 45 };
+  const EXTRA_DOG_FEES = { 2: 5, 3: 8, 4: 10 };
+  const SIZE_FEES = { Small: 0, Medium: 2, Large: 5 };
+
+  function calculatePrice() {
+    const dur    = parseInt(document.querySelector('input[name="duration"]:checked')?.value || 0);
+    const count  = parseInt(document.getElementById('dog_count').value) || 0;
+    const sizes  = getSelectedSizes();
+
+    const base     = 10;
+    const durFee   = DURATION_FEES[dur] || 0;
+    const dogFee   = count >= 2 ? (EXTRA_DOG_FEES[count] || 10) : 0;
+    const sizeFee  = sizes.length > 0
+      ? sizes.reduce((sum, s) => sum + (SIZE_FEES[s] || 0), 0)
+      : 0;
+    const total = base + durFee + dogFee + sizeFee;
+    return { base, durFee, dogFee, sizeFee, total };
+  }
+
+  // ══════════════════════════════════════
+  // SUMMARY
+  // ══════════════════════════════════════
+  function updateSummary() {
+    const name  = document.getElementById('dog_name').value;
+    const count = document.getElementById('dog_count').value;
+    const sizes  = getSelectedSizes();
+    const durEl  = document.querySelector('input[name="duration"]:checked');
+    const days   = getSelectedDays();
+    const date   = walkDateInput.value;
+    if (!name && !count && !sizes.length && !durEl && !days.length) return;
+    document.getElementById('sum-dog').textContent  = name ? `${name} (${count||'?'} dog${count>1?'s':''})` : '—';
+    document.getElementById('sum-size').textContent = sizes.length ? sizes.join(', ') : '—';
+    document.getElementById('sum-dur').textContent  = durEl  ? durEl.value + ' min' : '—';
+    document.getElementById('sum-days').textContent = days.length ? days.join(', ') : '—';
+    document.getElementById('sum-time').textContent = selectedTime ? minsToDisplay(timeToMins(selectedTime)) : '—';
+    document.getElementById('sum-date').textContent = date
+      ? new Date(date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric',year:'numeric'})
+      : '—';
+
+    const { base, durFee, dogFee, sizeFee, total } = calculatePrice();
+    document.getElementById('sum-price-base').textContent  = `$${base.toFixed(2)}`;
+    document.getElementById('sum-price-dur').textContent   = durFee  ? `+$${durFee.toFixed(2)}`  : '—';
+    document.getElementById('sum-price-dogs').textContent  = dogFee  ? `+$${dogFee.toFixed(2)}`  : '—';
+    document.getElementById('sum-price-size').textContent  = `+$${sizeFee.toFixed(2)}`;
+    document.getElementById('sum-total').textContent       = durFee  ? `$${total.toFixed(2)}`    : '—';
+
+    document.getElementById('summary-box').classList.add('visible');
+  }
+
+  ['dog_name','dog_count'].forEach(id => document.getElementById(id).addEventListener('input', updateSummary));
+  document.querySelectorAll('input[name="dog_size"]').forEach(r => r.addEventListener('change', updateSummary));
+
+  // ══════════════════════════════════════
+  // VALIDATION
+  // ══════════════════════════════════════
+  function setError(id, show) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('has-error', show);
+  }
+
+  function validateForm() {
+    let ok = true;
+    const name = document.getElementById('customer_name').value.trim();
+    setError('f-name', !name); if (!name) ok = false;
+
+    const email = document.getElementById('customer_email').value.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    setError('f-email', !emailOk); if (!emailOk) ok = false;
+
+    const addr = document.getElementById('address_street').value.trim();
+    setError('f-address', !addr); if (!addr) ok = false;
+
+    const city = document.getElementById('address_city').value.trim();
+    setError('f-city', !city); if (!city) ok = false;
+
+    const state = document.getElementById('address_state').value.trim();
+    setError('f-state', !state); if (!state) ok = false;
+
+    const zip = document.getElementById('address_zip').value.trim();
+    setError('f-zip', !zip); if (!zip) ok = false;
+
+    const dogName = document.getElementById('dog_name').value.trim();
+    setError('f-dogname', !dogName); if (!dogName) ok = false;
+
+    const dogCount = document.getElementById('dog_count').value;
+    setError('f-dogcount', !dogCount); if (!dogCount) ok = false;
+
+    const sizes = getSelectedSizes();
+    const sizeField = document.getElementById('f-dogsize');
+    const count = parseInt(dogCount) || 0;
+    const sizesOk = count > 0 && sizes.length === count;
+    if (!sizesOk) { sizeField.querySelector('.error-msg').style.display='block'; ok=false; }
+    else { sizeField.querySelector('.error-msg').style.display='none'; }
+
+    const dur = document.querySelector('input[name="duration"]:checked');
+    setError('f-duration', !dur); if (!dur) ok = false;
+
+    const days = getSelectedDays();
+    setError('f-walkdate', !days.length || !walkDateInput.value); 
+
+    const wd = walkDateInput.value;
+    const minD = new Date(); minD.setDate(minD.getDate()+7);
+    const minStr = minD.toISOString().split('T')[0];
+    const dayName = getDayNameFromDate(wd);
+    const dateOk = wd && wd >= minStr && dayName && AVAILABLE_DAYS.includes(dayName);
+    setError('f-walkdate', !dateOk); if (!dateOk) ok = false;
+
+    setError('f-time', !selectedTime); if (!selectedTime) ok = false;
+
+    return ok;
+  }
+
+  // ══════════════════════════════════════
+  // SUBMIT BOOKING
+  // ══════════════════════════════════════
+  document.getElementById('submit-btn').addEventListener('click', async () => {
+    if (!validateForm()) { showToast('Please fill in all required fields.', 'error'); return; }
+
+    const btn = document.getElementById('submit-btn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const street = document.getElementById('address_street').value.trim();
+    const city   = document.getElementById('address_city').value.trim();
+    const state  = document.getElementById('address_state').value.trim();
+    const zip    = document.getElementById('address_zip').value.trim();
+    const fullAddress = `${street}, ${city}, ${state} ${zip}`;
+
+    const dur       = parseInt(document.querySelector('input[name="duration"]:checked').value);
+    const endMins   = timeToMins(selectedTime) + dur;
+    const bufMins   = endMins + 15;
+    const endTime   = `${String(Math.floor(endMins/60)).padStart(2,'0')}:${String(endMins%60).padStart(2,'0')}`;
+    const bufEnd    = `${String(Math.floor(bufMins/60)).padStart(2,'0')}:${String(bufMins%60).padStart(2,'0')}`;
+    const custEmail = document.getElementById('customer_email').value.trim();
+    const custName  = document.getElementById('customer_name').value.trim();
+
+    const booking = {
+      customer_name:   custName,
+      address:         fullAddress,
+      walk_day:        getSelectedDays().join(', '),
+      walk_date:       walkDateInput.value,
+      start_time:      selectedTime,
+      end_time:        endTime,
+      buffer_end_time: bufEnd,
+      duration:        dur,
+      dog_count:       parseInt(document.getElementById('dog_count').value),
+      dog_size:        getSelectedSizes().join(', '),
+      dog_name:        document.getElementById('dog_name').value.trim(),
+      payment_method:  'Cash',
+      customer_email:  custEmail,
+      status:          'pending',
+    };
+
+    try {
+      const { data, error } = await sb.from('bookings').insert([booking]).select();
+      if (error) throw error;
+
+      const sharedParams = {
+        customer_name:  custName,
+        customer_email:  custEmail,
+        address:        fullAddress,
+        dog_name:       booking.dog_name,
+        dog_count:      booking.dog_count,
+        dog_size:       booking.dog_size,
+        walk_date:      booking.walk_date,
+        walk_day:       booking.walk_day,
+        start_time:     minsToDisplay(timeToMins(selectedTime)),
+        duration:       dur,
+        payment_method: booking.payment_method,
+      };
+
+      const { base, durFee, dogFee, sizeFee, total } = calculatePrice();
+      const priceBreakdown = `$${base.toFixed(2)} base + $${durFee.toFixed(2)} duration${dogFee ? ' + $'+dogFee.toFixed(2)+' extra dogs' : ''} + $${sizeFee.toFixed(2)} size = $${total.toFixed(2)} total`;
+
+      // Email to owner
+      await sendEmail({
+        customer_name:  custName,
+        customer_email: custEmail,
+        address:        fullAddress,
+        dog_name:       booking.dog_name,
+        dog_count:      booking.dog_count,
+        dog_size:       booking.dog_size,
+        walk_date:      booking.walk_date,
+        walk_day:       booking.walk_day,
+        start_time:     minsToDisplay(timeToMins(selectedTime)),
+        duration:       dur,
+        payment_method: booking.payment_method,
+        price:          priceBreakdown,
+      });
+
+      // Email to customer confirming receipt
+      await sendEmailTo(custEmail, custName, {
+        customer_name:  custName,
+        customer_email: custEmail,
+        address:        fullAddress,
+        dog_name:       booking.dog_name,
+        dog_count:      booking.dog_count,
+        dog_size:       booking.dog_size,
+        walk_date:      booking.walk_date,
+        walk_day:       booking.walk_day,
+        start_time:     minsToDisplay(timeToMins(selectedTime)),
+        duration:       dur,
+        payment_method: booking.payment_method,
+        price:          priceBreakdown,
+        status_message: 'Your walk request has been received and is pending approval. We will email you once it has been reviewed!',
+      });
+
+      document.getElementById('booking-form-card').style.display = 'none';
+      document.getElementById('success-screen').classList.add('visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      console.error(err);
+      showToast('Something went wrong. Please try again.', 'error');
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  });
+
+  // ══════════════════════════════════════
+  // DASHBOARD — LOAD BOOKINGS
+  // ══════════════════════════════════════
+  let allBookings   = [];
+  let currentFilter = 'all';
+
+  async function loadBookings() {
+    document.getElementById('last-refresh').textContent = 'Loading…';
+    try {
+      const { data, error } = await sb.from('bookings').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      allBookings = data || [];
+      updateStats();
+      renderBookings();
+      document.getElementById('last-refresh').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+    } catch (err) {
+      console.error(err);
+      document.getElementById('bookings-list').innerHTML =
+        '<div class="empty-state"><div class="ei">⚠️</div><p>Failed to load. Check your Supabase config.</p></div>';
+    }
+  }
+
+  document.getElementById('refresh-btn').addEventListener('click', loadBookings);
+
+  // ══════════════════════════════════════
+  // VIEW TABS
+  // ══════════════════════════════════════
+  document.querySelectorAll('.view-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const view = tab.dataset.view;
+      document.getElementById('bookings-view').style.display = view === 'bookings' ? 'block' : 'none';
+      document.getElementById('calendar-view').style.display = view === 'calendar' ? 'block' : 'none';
+      document.getElementById('dash-title').textContent = view === 'bookings' ? 'Booking Requests' : 'Walk Calendar';
+      if (view === 'calendar') renderCalendar();
+    });
+  });
+
+  // ══════════════════════════════════════
+  // CALENDAR
+  // ══════════════════════════════════════
+  let calYear  = new Date().getFullYear();
+  let calMonth = new Date().getMonth();
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAY_HEADERS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  function renderCalendar() {
+    document.getElementById('cal-month-label').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+
+    // Day headers
+    DAY_HEADERS.forEach(d => {
+      const h = document.createElement('div');
+      h.className = 'cal-day-header'; h.textContent = d;
+      grid.appendChild(h);
+    });
+
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+    const today = new Date();
+
+    // Prev month filler
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const cell = document.createElement('div');
+      cell.className = 'cal-day other-month';
+      cell.innerHTML = `<div class="cal-day-num">${daysInPrev - i}</div>`;
+      grid.appendChild(cell);
+    }
+
+    // Current month days
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cell = document.createElement('div');
+      const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+      cell.className = `cal-day${isToday ? ' today' : ''}`;
+      cell.innerHTML = `<div class="cal-day-num">${d}</div>`;
+
+      // Find bookings on this date
+      const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dayBookings = allBookings.filter(b => b.walk_date === dateStr && b.status !== 'denied');
+
+      dayBookings.forEach(b => {
+        const ev = document.createElement('div');
+        ev.className = `cal-event ${b.status || 'pending'}`;
+        ev.innerHTML = `<div class="ev-name">${b.customer_name || '—'}</div><div class="ev-time">${fmtTime(b.start_time)}</div>`;
+        ev.addEventListener('click', e => { e.stopPropagation(); showCalPopup(b, e); });
+        cell.appendChild(ev);
+      });
+
+      grid.appendChild(cell);
+    }
+
+    // Next month filler
+    const totalCells = firstDay + daysInMonth;
+    const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let i = 1; i <= remaining; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cal-day other-month';
+      cell.innerHTML = `<div class="cal-day-num">${i}</div>`;
+      grid.appendChild(cell);
+    }
+  }
+
+  document.getElementById('cal-prev').addEventListener('click', () => {
+    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+  });
+  document.getElementById('cal-next').addEventListener('click', () => {
+    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  });
+
+  function showCalPopup(b, e) {
+    const popup = document.getElementById('cal-popup');
+    document.getElementById('popup-title').textContent = `${b.customer_name} — ${fmtDate(b.walk_date)}`;
+
+    // Recalculate price
+    const durMins  = parseInt(b.duration) || 0;
+    const dogCount = parseInt(b.dog_count) || 1;
+    const dogSizes = (b.dog_size || '').split(', ');
+    const bBase    = 10;
+    const bDurFee  = DURATION_FEES[durMins] || 0;
+    const bDogFee  = dogCount >= 2 ? (EXTRA_DOG_FEES[dogCount] || 10) : 0;
+    const bSizeFee = dogSizes.reduce((sum, s) => sum + (SIZE_FEES[s.trim()] || 0), 0);
+    const bTotal   = bBase + bDurFee + bDogFee + bSizeFee;
+
+    document.getElementById('popup-body').innerHTML = `
+      <div class="popup-row"><strong>Time:</strong> ${fmtTime(b.start_time)} (${b.duration} min)</div>
+      <div class="popup-row"><strong>Address:</strong> ${b.address || '—'}</div>
+      <div class="popup-row"><strong>Dog(s):</strong> ${b.dog_name || '—'} · ${b.dog_size || '—'}</div>
+      <div class="popup-row"><strong>Price:</strong> $${bTotal.toFixed(2)}</div>
+      <div class="popup-row"><strong>Status:</strong> <span style="color:${b.status==='approved'?'var(--dsage)':'var(--dgold)'}">${b.status}</span></div>
+    `;
+
+    // Position popup near click
+    const x = Math.min(e.clientX, window.innerWidth - 340);
+    const y = Math.min(e.clientY + 10, window.innerHeight - 220);
+    popup.style.left = x + 'px';
+    popup.style.top  = y + 'px';
+    popup.classList.add('visible');
+  }
+
+  document.getElementById('popup-close').addEventListener('click', () => {
+    document.getElementById('cal-popup').classList.remove('visible');
+  });
+  document.addEventListener('click', e => {
+    const popup = document.getElementById('cal-popup');
+    if (!popup.contains(e.target)) popup.classList.remove('visible');
+  });
+
+  document.getElementById('clear-denied-btn').addEventListener('click', async () => {
+    const denied = allBookings.filter(b => b.status === 'denied');
+    if (!denied.length) { showToast('No denied bookings to clear.', ''); return; }
+    if (!confirm(`Delete all ${denied.length} denied booking(s)? This cannot be undone.`)) return;
+    try {
+      const { error } = await sb.from('bookings').delete().eq('status', 'denied');
+      if (error) throw error;
+      allBookings = allBookings.filter(b => b.status !== 'denied');
+      updateStats();
+      renderBookings();
+      showToast(`✓ Cleared ${denied.length} denied booking(s).`, 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to clear denied bookings.', 'error');
+    }
+  });
+
+  function updateStats() {
+    const pending  = allBookings.filter(b => b.status === 'pending').length;
+    const approved = allBookings.filter(b => b.status === 'approved').length;
+    document.getElementById('stat-pending').textContent  = pending;
+    document.getElementById('stat-approved').textContent = approved;
+    document.getElementById('stat-total').textContent    = allBookings.length;
+    document.getElementById('pending-badge').textContent = pending;
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderBookings();
+    });
+  });
+
+  function renderBookings() {
+    const list = document.getElementById('bookings-list');
+    const filtered = currentFilter === 'all' ? allBookings : allBookings.filter(b => b.status === currentFilter);
+    if (!filtered.length) {
+      const label = currentFilter === 'all' ? '' : currentFilter + ' ';
+      list.innerHTML = `<div class="empty-state"><div class="ei">🐾</div><p>No ${label}bookings yet.</p></div>`;
+      return;
+    }
+    list.innerHTML = '';
+    filtered.forEach((b, i) => list.appendChild(buildCard(b, i)));
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  }
+  function fmtTime(t) {
+    if (!t) return '—';
+    const [h,m] = t.split(':').map(Number);
+    const ampm = h>=12?'PM':'AM', dh = h>12?h-12:h===0?12:h;
+    return `${dh}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  function buildCard(b, idx) {
+    const card = document.createElement('div');
+    card.className = `booking-card status-${b.status||'pending'}`;
+    card.style.animationDelay = `${idx*0.04}s`;
+    const submitted = b.created_at ? new Date(b.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    const isPending = b.status === 'pending';
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <div class="card-id">Booking #${b.id}</div>
+          <div class="card-name">${b.customer_name||'—'}</div>
+          <div class="card-meta">
+            <span class="meta-chip">🗓 ${fmtDate(b.walk_date)}</span>
+            <span class="meta-chip">⏱ ${fmtTime(b.start_time)}</span>
+            <span class="meta-chip">🐕 ${b.dog_name||'—'} · ${b.dog_count||'?'}x ${b.dog_size||'?'}</span>
+            <span class="meta-chip">⏳ ${b.duration||'?'} min</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="status-badge ${b.status||'pending'}">${b.status||'pending'}</span>
+          <span class="card-date">Submitted ${submitted}</span>
+          <span class="card-chevron">▾</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          <div class="detail-grid">
+            <div><div class="detail-key">Email</div><div class="detail-val">${b.customer_email||'—'}</div></div>
+            <div><div class="detail-key">Address</div><div class="detail-val">${b.address||'—'}</div></div>
+            <div><div class="detail-key">Walk Day(s)</div><div class="detail-val">${b.walk_day||'—'}</div></div>
+            <div><div class="detail-key">Walk Date</div><div class="detail-val">${fmtDate(b.walk_date)}</div></div>
+            <div><div class="detail-key">Start → End</div><div class="detail-val">${fmtTime(b.start_time)} → ${fmtTime(b.end_time)}</div></div>
+            <div><div class="detail-key">Buffer End</div><div class="detail-val">${fmtTime(b.buffer_end_time)}</div></div>
+            <div><div class="detail-key">Dog Size</div><div class="detail-val">${b.dog_size||'—'}</div></div>
+            <div><div class="detail-key">Payment</div><div class="detail-val">${b.payment_method||'—'}</div></div>
+          </div>
+          <div class="card-actions">
+            ${isPending
+              ? `<button class="btn-accept">✓ Accept</button><button class="btn-deny">✕ Deny</button>`
+              : `<span style="font-size:0.82rem;color:var(--dmid);">This request has been <strong>${b.status}</strong>.</span>`}
+            <button class="btn-sms">✉️ Email Customer</button>
+          </div>
+        </div>
+      </div>`;
+
+    card.querySelector('.card-head').addEventListener('click', () => card.classList.toggle('expanded'));
+
+    const acceptBtn = card.querySelector('.btn-accept');
+    const denyBtn   = card.querySelector('.btn-deny');
+    if (acceptBtn) acceptBtn.addEventListener('click', e => { e.stopPropagation(); handleDecision(b,'approved',card,acceptBtn,denyBtn); });
+    if (denyBtn)   denyBtn.addEventListener('click',   e => { e.stopPropagation(); handleDecision(b,'denied',card,acceptBtn,denyBtn); });
+
+    card.querySelector('.btn-sms').addEventListener('click', e => {
+      e.stopPropagation();
+      const email = b.customer_email || '';
+      if (email) window.open(`mailto:${email}`, '_blank');
+    });
+
+    return card;
+  }
+
+  async function handleDecision(b, status, card, acceptBtn, denyBtn) {
+    if (acceptBtn) acceptBtn.disabled = true;
+    if (denyBtn)   denyBtn.disabled   = true;
+    try {
+      const { error } = await sb.from('bookings').update({ status }).eq('id', b.id);
+      if (error) throw error;
+
+      const statusMsg = status === 'approved'
+        ? `Great news! Your walk for ${b.dog_name} on ${fmtDate(b.walk_date)} at ${fmtTime(b.start_time)} is confirmed! See you soon. — Vienna Dog Walking`
+        : `Unfortunately we are unable to accommodate your walk request for ${b.dog_name} on ${fmtDate(b.walk_date)}. Please visit walkers.dog to book another time. — Vienna Dog Walking`;
+
+      // Recalculate price from stored booking data
+      const durMins  = parseInt(b.duration) || 0;
+      const dogCount = parseInt(b.dog_count) || 1;
+      const dogSizes = (b.dog_size || '').split(', ');
+      const bBase    = 10;
+      const bDurFee  = DURATION_FEES[durMins] || 0;
+      const bDogFee  = dogCount >= 2 ? (EXTRA_DOG_FEES[dogCount] || 10) : 0;
+      const bSizeFee = dogSizes.reduce((sum, s) => sum + (SIZE_FEES[s.trim()] || 0), 0);
+      const bTotal   = bBase + bDurFee + bDogFee + bSizeFee;
+      const bPrice   = `$${bBase.toFixed(2)} base + $${bDurFee.toFixed(2)} duration${bDogFee ? ' + $'+bDogFee.toFixed(2)+' extra dogs' : ''} + $${bSizeFee.toFixed(2)} size = $${bTotal.toFixed(2)} total`;
+
+      await sendEmailTo(b.customer_email, b.customer_name, {
+        customer_name:  b.customer_name,
+        customer_email: b.customer_email,
+        address:        b.address,
+        dog_name:       b.dog_name,
+        dog_count:      b.dog_count,
+        dog_size:       b.dog_size,
+        walk_date:      fmtDate(b.walk_date),
+        walk_day:       b.walk_day,
+        start_time:     fmtTime(b.start_time),
+        duration:       b.duration,
+        payment_method: b.payment_method,
+        price:          bPrice,
+        status_message: statusMsg,
+      });
+
+      const local = allBookings.find(x => x.id === b.id);
+      if (local) local.status = status;
+      updateStats();
+      showToast(status==='approved' ? '✓ Walk approved & customer notified!' : '✕ Walk denied & customer notified.', status==='approved'?'success':'error');
+      setTimeout(() => renderBookings(), 1200);
+
+    } catch (err) {
+      console.error(err);
+      showToast('Something went wrong. Please try again.', 'error');
+      if (acceptBtn) acceptBtn.disabled = false;
+      if (denyBtn)   denyBtn.disabled   = false;
+    }
+  }
+
+  // ══════════════════════════════════════
+  // EMAIL (EmailJS)
+  // ══════════════════════════════════════
+  // Sends to YOU (the owner) using the To Email set in the template
+  async function sendEmail(params) {
+    try {
+      console.log('Sending owner email with params:', params);
+      const result = await emailjs.send(EJS_SERVICE_ID, EJS_OWNER_TEMPLATE, params);
+      console.log('Owner email result:', result);
+    } catch (err) {
+      console.error('EmailJS owner email error:', err);
+    }
+  }
+
+  // Sends to a SPECIFIC email address (customer) by overriding the To Email
+  async function sendEmailTo(toEmail, toName, params) {
+    try {
+      await emailjs.send(EJS_SERVICE_ID, EJS_CUSTOMER_TEMPLATE, {
+        ...params,
+        to_email: toEmail,
+        to_name:  toName,
+      });
+    } catch (err) {
+      console.error('EmailJS customer email error:', err);
+    }
+  }
+
+  // ══════════════════════════════════════
+  // TOAST
+  // ══════════════════════════════════════
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    setTimeout(() => { t.className = ''; }, 3500);
+  }
+</script>
+</body>
+</html>
