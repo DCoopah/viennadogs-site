@@ -505,6 +505,9 @@
     border-top: 1px solid #2A2A28; padding-top: 1.25rem;
     font-size: 0.78rem; color: #5A5A58; text-align: center;
   }
+
+  /* ══════════════════════════════════════
+     DASHBOARD
   ══════════════════════════════════════ */
   #dashboard-screen {
     background: var(--dbg);
@@ -781,7 +784,7 @@
   <nav>
     <a href="/" class="nav-logo">Vienna<span> Dog Walking</span></a>
     <div class="nav-right">
-      <a href="/" class="nav-link">← Home</a>
+      <a href="/contact.html" class="nav-link">Contact</a>
       <button class="btn-owner" id="owner-login-btn">🔐 Owner</button>
     </div>
   </nav>
@@ -854,9 +857,12 @@
           </div>
           <div class="field" id="f-dogcount">
             <label>Number of Dogs <span class="req">*</span></label>
+            <!-- FIX: default to value="1" so renderDogSizes(1) matches on init -->
             <select id="dog_count">
-              <option value="">Select…</option>
-              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
             </select>
             <span class="error-msg">Please select dog count.</span>
           </div>
@@ -959,7 +965,7 @@
     </div>
   </div>
 
-  <!-- CANCELLATION POLICY & CONTACT -->
+  <!-- FOOTER -->
   <footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-col">
@@ -968,7 +974,7 @@
       </div>
       <div class="footer-col">
         <div class="footer-heading">Contact Us</div>
-        <p>📧 <a href="/cdn-cgi/l/email-protection#4730262b2c22353469312e22292926692328203407202a262e2b6924282a"><span class="__cf_email__" data-cfemail="4d3a2c2126283f3e633b242823232c6329222a3e0d2a202c2421632e2220">[email&#160;protected]</span></a></p>
+        <p>📧 <a href="/cdn-cgi/l/email-protection#a4d3c5c8cfc1d6d78ad2cdc1cacac58ac0cbc3d7e4c3c9c5cdc88ac7cbc9"><span class="__cf_email__" data-cfemail="d9aeb8b5b2bcabaaf7afb0bcb7b7b8f7bdb6beaa99beb4b8b0b5f7bab6b4">[email&#160;protected]</span></a></p>
         <p>📞 <a href="tel:+17038995913">(703) 899-5913</a></p>
       </div>
       <div class="footer-col">
@@ -1075,23 +1081,20 @@
 
 <div id="toast"></div>
 
-<!-- Google Places (loaded dynamically) -->
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   // ══════════════════════════════════════
-  // ★ CONFIG — replace these values ★
+  // CONFIG
   // ══════════════════════════════════════
   const SUPABASE_URL        = 'https://bjytdggbaffflmwxeeol.supabase.co';
   const SUPABASE_ANON_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqeXRkZ2diYWZmZmxtd3hlZW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMDE3NDcsImV4cCI6MjA4ODU3Nzc0N30.w2ujaxMIIm-9wmZWJlcsyPhZACsw3h3GSVQ_A0HNcRY';
   const OWNER_PASSWORD      = 'viennadogs';
-  const OWNER_EMAIL         = 'daniel.cooper.tell@gmail.com';
+  const OWNER_EMAIL         = 'walkers.vienna.dogs@gmail.com';
 
-  // EmailJS credentials
-  const EJS_PUBLIC_KEY      = 'bcrZQPAr-fIpyYlSr';
-  const EJS_SERVICE_ID      = 'service_gi477ux';
-  const EJS_OWNER_TEMPLATE    = 'template_ipwvxjz';   // sends to you
-  const EJS_CUSTOMER_TEMPLATE = 'template_1x5aswf'; // sends to customer
+  const EJS_PUBLIC_KEY        = 'bcrZQPAr-fIpyYlSr';
+  const EJS_SERVICE_ID        = 'service_gi477ux';
+  const EJS_OWNER_TEMPLATE    = 'template_ipwvxjz';
+  const EJS_CUSTOMER_TEMPLATE = 'template_1x5aswf';
 
-  // Init EmailJS
   emailjs.init(EJS_PUBLIC_KEY);
 
   // ══════════════════════════════════════
@@ -1099,6 +1102,17 @@
   // ══════════════════════════════════════
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ══════════════════════════════════════
+  // TOAST
+  // ══════════════════════════════════════
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show' + (type ? ' ' + type : '');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.className = ''; }, 3200);
+  }
 
   // ══════════════════════════════════════
   // SCREEN SWITCHING
@@ -1126,9 +1140,9 @@
   // ══════════════════════════════════════
   // OWNER LOGIN MODAL
   // ══════════════════════════════════════
-  const overlay   = document.getElementById('owner-modal-overlay');
-  const modalPw   = document.getElementById('modal-pw');
-  const modalErr  = document.getElementById('modal-error');
+  const overlay  = document.getElementById('owner-modal-overlay');
+  const modalPw  = document.getElementById('modal-pw');
+  const modalErr = document.getElementById('modal-error');
 
   document.getElementById('owner-login-btn').addEventListener('click', () => {
     overlay.classList.add('open');
@@ -1167,9 +1181,6 @@
   if (sessionStorage.getItem('wd_auth') === '1') showDashboard();
 
   // ══════════════════════════════════════
-  // GOOGLE AUTOCOMPLETE
-  // ══════════════════════════════════════
-  // ══════════════════════════════════════
   // AVAILABILITY & TIME SLOTS
   // ══════════════════════════════════════
   const AVAILABILITY = {
@@ -1181,7 +1192,7 @@
     Saturday:  { open: '09:00', close: '22:00' },
     Sunday:    { open: '09:00', close: '20:00' },
   };
-  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const DAY_NAMES     = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const AVAILABLE_DAYS = Object.keys(AVAILABILITY);
 
   let selectedTime = null;
@@ -1213,14 +1224,23 @@
   walkDateInput.max = maxDate.toISOString().split('T')[0];
 
   walkDateInput.addEventListener('change', function() {
+    const wd = this.value;
+    const minD = new Date(); minD.setDate(minD.getDate() + 7);
+    const minStr = minD.toISOString().split('T')[0];
+    if (wd && wd < minStr) {
+      showToast('Please select a date at least 7 days from today.', 'error');
+      this.value = ''; selectedTime = null;
+      document.getElementById('time-slots-wrap').classList.remove('visible');
+      setError('f-walkdate', true);
+      updateSummary(); return;
+    }
     const dayName = getDayNameFromDate(this.value);
     if (!dayName || !AVAILABLE_DAYS.includes(dayName)) {
       showToast(`Sorry, ${dayName || 'that day'} is not available. Please pick a different date.`, 'error');
-      this.value = '';
-      selectedTime = null;
+      this.value = ''; selectedTime = null;
       document.getElementById('time-slots-wrap').classList.remove('visible');
       setError('f-walkdate', true);
-      return;
+      updateSummary(); return;
     }
     setError('f-walkdate', false);
     updateTimeSlots();
@@ -1254,6 +1274,9 @@
   }
 
   document.querySelectorAll('input[name="duration"]').forEach(r => r.addEventListener('change', () => { updateTimeSlots(); updateSummary(); }));
+
+  // ══════════════════════════════════════
+  // DOG SIZE CARDS
   // ══════════════════════════════════════
   function renderDogSizes(count) {
     const container = document.getElementById('dog-size-container');
@@ -1266,7 +1289,8 @@
     for (let i = 0; i < count; i++) {
       const label = count === 1 ? 'Your Dog' : `Dog ${i + 1}`;
       const wrap = document.createElement('div');
-      wrap.innerHTML = `<div style="font-size:0.8rem;font-weight:600;color:var(--mid-gray);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.06em;">${label}</div>
+      wrap.innerHTML = `
+        <div style="font-size:0.8rem;font-weight:600;color:var(--mid-gray);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.06em;">${label}</div>
         <div class="size-cards">
           ${sizes.map(s => `
             <div class="size-card">
@@ -1279,8 +1303,6 @@
             </div>`).join('')}
         </div>`;
       container.appendChild(wrap);
-      // Hook size change to update summary & price
-      wrap.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', updateSummary));
     }
   }
 
@@ -1296,37 +1318,29 @@
 
   document.getElementById('dog_count').addEventListener('change', function() {
     const count = parseInt(this.value) || 0;
-    if (count > 0) renderDogSizes(count);
-    else document.getElementById('dog-size-container').innerHTML = '';
+    renderDogSizes(count);
     updateSummary();
   });
 
-  // Initialize with 1 dog size picker
+  // Initialize with 1 dog size picker (matches the default dog_count select value of "1")
   renderDogSizes(1);
-
-  // Event delegation — catches size changes even after re-render
-  document.getElementById('dog-size-container').addEventListener('change', updateSummary);
-
 
   // ══════════════════════════════════════
   // PRICING
   // ══════════════════════════════════════
-  const DURATION_FEES = { 30: 15, 45: 22.50, 60: 30, 90: 45 };
+  const DURATION_FEES  = { 30: 15, 45: 22.50, 60: 30, 90: 45 };
   const EXTRA_DOG_FEES = { 2: 5, 3: 8, 4: 10 };
-  const SIZE_FEES = { Small: 0, Medium: 2, Large: 5 };
+  const SIZE_FEES      = { Small: 0, Medium: 2, Large: 5 };
 
   function calculatePrice() {
-    const dur    = parseInt(document.querySelector('input[name="duration"]:checked')?.value || 0);
-    const count  = parseInt(document.getElementById('dog_count').value) || 0;
-    const sizes  = getSelectedSizes();
-
-    const base     = 10;
-    const durFee   = DURATION_FEES[dur] || 0;
-    const dogFee   = count >= 2 ? (EXTRA_DOG_FEES[count] || 10) : 0;
-    const sizeFee  = sizes.length > 0
-      ? sizes.reduce((sum, s) => sum + (SIZE_FEES[s] || 0), 0)
-      : 0;
-    const total = base + durFee + dogFee + sizeFee;
+    const dur   = parseInt(document.querySelector('input[name="duration"]:checked')?.value || 0);
+    const count = parseInt(document.getElementById('dog_count').value) || 0;
+    const sizes = getSelectedSizes();
+    const base    = 10;
+    const durFee  = DURATION_FEES[dur] || 0;
+    const dogFee  = count >= 2 ? (EXTRA_DOG_FEES[count] || 10) : 0;
+    const sizeFee = sizes.reduce((sum, s) => sum + (SIZE_FEES[s] || 0), 0);
+    const total   = base + durFee + dogFee + sizeFee;
     return { base, durFee, dogFee, sizeFee, total };
   }
 
@@ -1336,14 +1350,14 @@
   function updateSummary() {
     const name  = document.getElementById('dog_name').value;
     const count = document.getElementById('dog_count').value;
-    const sizes  = getSelectedSizes();
-    const durEl  = document.querySelector('input[name="duration"]:checked');
-    const days   = getSelectedDays();
-    const date   = walkDateInput.value;
-    if (!name && !count && !sizes.length && !durEl && !days.length) return;
+    const sizes = getSelectedSizes();
+    const durEl = document.querySelector('input[name="duration"]:checked');
+    const days  = getSelectedDays();
+    const date  = walkDateInput.value;
+
     document.getElementById('sum-dog').textContent  = name ? `${name} (${count||'?'} dog${count>1?'s':''})` : '—';
     document.getElementById('sum-size').textContent = sizes.length ? sizes.join(', ') : '—';
-    document.getElementById('sum-dur').textContent  = durEl  ? durEl.value + ' min' : '—';
+    document.getElementById('sum-dur').textContent  = durEl ? durEl.value + ' min' : '—';
     document.getElementById('sum-days').textContent = days.length ? days.join(', ') : '—';
     document.getElementById('sum-time').textContent = selectedTime ? minsToDisplay(timeToMins(selectedTime)) : '—';
     document.getElementById('sum-date').textContent = date
@@ -1352,16 +1366,19 @@
 
     const { base, durFee, dogFee, sizeFee, total } = calculatePrice();
     document.getElementById('sum-price-base').textContent  = `$${base.toFixed(2)}`;
-    document.getElementById('sum-price-dur').textContent   = durFee  ? `+$${durFee.toFixed(2)}`  : '—';
-    document.getElementById('sum-price-dogs').textContent  = dogFee  ? `+$${dogFee.toFixed(2)}`  : '—';
+    document.getElementById('sum-price-dur').textContent   = durFee ? `+$${durFee.toFixed(2)}`  : '—';
+    document.getElementById('sum-price-dogs').textContent  = dogFee ? `+$${dogFee.toFixed(2)}`  : '—';
     document.getElementById('sum-price-size').textContent  = `+$${sizeFee.toFixed(2)}`;
-    document.getElementById('sum-total').textContent       = durFee  ? `$${total.toFixed(2)}`    : '—';
+    document.getElementById('sum-total').textContent       = durFee ? `$${total.toFixed(2)}`    : '—';
 
     document.getElementById('summary-box').classList.add('visible');
   }
 
-  ['dog_name','dog_count'].forEach(id => document.getElementById(id).addEventListener('input', updateSummary));
-  document.querySelectorAll('input[name="dog_size"]').forEach(r => r.addEventListener('change', updateSummary));
+  // Wire up ALL inputs that affect the summary
+  document.getElementById('dog_name').addEventListener('input', updateSummary);
+  document.getElementById('dog_count').addEventListener('change', updateSummary);
+  document.getElementById('dog-size-container').addEventListener('change', updateSummary);
+  document.querySelectorAll('input[name="duration"]').forEach(r => r.addEventListener('change', updateSummary));
 
   // ══════════════════════════════════════
   // VALIDATION
@@ -1373,6 +1390,7 @@
 
   function validateForm() {
     let ok = true;
+
     const name = document.getElementById('customer_name').value.trim();
     setError('f-name', !name); if (!name) ok = false;
 
@@ -1398,24 +1416,21 @@
     const dogCount = document.getElementById('dog_count').value;
     setError('f-dogcount', !dogCount); if (!dogCount) ok = false;
 
-    const sizes = getSelectedSizes();
+    const sizes     = getSelectedSizes();
+    const count     = parseInt(dogCount) || 0;
+    const sizesOk   = count > 0 && sizes.length === count;
     const sizeField = document.getElementById('f-dogsize');
-    const count = parseInt(dogCount) || 0;
-    const sizesOk = count > 0 && sizes.length === count;
-    if (!sizesOk) { sizeField.querySelector('.error-msg').style.display='block'; ok=false; }
-    else { sizeField.querySelector('.error-msg').style.display='none'; }
+    if (!sizesOk) { sizeField.querySelector('.error-msg').style.display = 'block'; ok = false; }
+    else          { sizeField.querySelector('.error-msg').style.display = 'none'; }
 
     const dur = document.querySelector('input[name="duration"]:checked');
     setError('f-duration', !dur); if (!dur) ok = false;
 
-    const days = getSelectedDays();
-    setError('f-walkdate', !days.length || !walkDateInput.value); 
-
-    const wd = walkDateInput.value;
-    const minD = new Date(); minD.setDate(minD.getDate()+7);
-    const minStr = minD.toISOString().split('T')[0];
+    const wd      = walkDateInput.value;
+    const minD    = new Date(); minD.setDate(minD.getDate() + 7);
+    const minStr  = minD.toISOString().split('T')[0];
     const dayName = getDayNameFromDate(wd);
-    const dateOk = wd && wd >= minStr && dayName && AVAILABLE_DAYS.includes(dayName);
+    const dateOk  = wd && wd >= minStr && dayName && AVAILABLE_DAYS.includes(dayName);
     setError('f-walkdate', !dateOk); if (!dateOk) ok = false;
 
     setError('f-time', !selectedTime); if (!selectedTime) ok = false;
@@ -1432,17 +1447,18 @@
     const btn = document.getElementById('submit-btn');
     btn.classList.add('loading'); btn.disabled = true;
 
-    const street = document.getElementById('address_street').value.trim();
-    const city   = document.getElementById('address_city').value.trim();
-    const state  = document.getElementById('address_state').value.trim();
-    const zip    = document.getElementById('address_zip').value.trim();
+    const street     = document.getElementById('address_street').value.trim();
+    const city       = document.getElementById('address_city').value.trim();
+    const state      = document.getElementById('address_state').value.trim();
+    const zip        = document.getElementById('address_zip').value.trim();
     const fullAddress = `${street}, ${city}, ${state} ${zip}`;
 
-    const dur       = parseInt(document.querySelector('input[name="duration"]:checked').value);
-    const endMins   = timeToMins(selectedTime) + dur;
-    const bufMins   = endMins + 15;
-    const endTime   = `${String(Math.floor(endMins/60)).padStart(2,'0')}:${String(endMins%60).padStart(2,'0')}`;
-    const bufEnd    = `${String(Math.floor(bufMins/60)).padStart(2,'0')}:${String(bufMins%60).padStart(2,'0')}`;
+    const dur     = parseInt(document.querySelector('input[name="duration"]:checked').value);
+    const endMins = timeToMins(selectedTime) + dur;
+    const bufMins = endMins + 15;
+    const endTime = `${String(Math.floor(endMins/60)).padStart(2,'0')}:${String(endMins%60).padStart(2,'0')}`;
+    const bufEnd  = `${String(Math.floor(bufMins/60)).padStart(2,'0')}:${String(bufMins%60).padStart(2,'0')}`;
+
     const custEmail = document.getElementById('customer_email').value.trim();
     const custName  = document.getElementById('customer_name').value.trim();
 
@@ -1467,25 +1483,10 @@
       const { data, error } = await sb.from('bookings').insert([booking]).select();
       if (error) throw error;
 
-      const sharedParams = {
-        customer_name:  custName,
-        customer_email:  custEmail,
-        address:        fullAddress,
-        dog_name:       booking.dog_name,
-        dog_count:      booking.dog_count,
-        dog_size:       booking.dog_size,
-        walk_date:      booking.walk_date,
-        walk_day:       booking.walk_day,
-        start_time:     minsToDisplay(timeToMins(selectedTime)),
-        duration:       dur,
-        payment_method: booking.payment_method,
-      };
-
       const { base, durFee, dogFee, sizeFee, total } = calculatePrice();
       const priceBreakdown = `$${base.toFixed(2)} base + $${durFee.toFixed(2)} duration${dogFee ? ' + $'+dogFee.toFixed(2)+' extra dogs' : ''} + $${sizeFee.toFixed(2)} size = $${total.toFixed(2)} total`;
 
-      // Email to owner
-      await sendEmail({
+      const sharedParams = {
         customer_name:  custName,
         customer_email: custEmail,
         address:        fullAddress,
@@ -1498,22 +1499,12 @@
         duration:       dur,
         payment_method: booking.payment_method,
         price:          priceBreakdown,
-      });
+      };
 
-      // Email to customer confirming receipt
+      await sendEmail(sharedParams);
+
       await sendEmailTo(custEmail, custName, {
-        customer_name:  custName,
-        customer_email: custEmail,
-        address:        fullAddress,
-        dog_name:       booking.dog_name,
-        dog_count:      booking.dog_count,
-        dog_size:       booking.dog_size,
-        walk_date:      booking.walk_date,
-        walk_day:       booking.walk_day,
-        start_time:     minsToDisplay(timeToMins(selectedTime)),
-        duration:       dur,
-        payment_method: booking.payment_method,
-        price:          priceBreakdown,
+        ...sharedParams,
         status_message: 'Your walk request has been received and is pending approval. We will email you once it has been reviewed!',
       });
 
@@ -1560,8 +1551,8 @@
       document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       const view = tab.dataset.view;
-      document.getElementById('bookings-view').style.display = view === 'bookings' ? 'block' : 'none';
-      document.getElementById('calendar-view').style.display = view === 'calendar' ? 'block' : 'none';
+      document.getElementById('bookings-view').style.display  = view === 'bookings' ? 'block' : 'none';
+      document.getElementById('calendar-view').style.display  = view === 'calendar'  ? 'block' : 'none';
       document.getElementById('dash-title').textContent = view === 'bookings' ? 'Booking Requests' : 'Walk Calendar';
       if (view === 'calendar') renderCalendar();
     });
@@ -1580,19 +1571,17 @@
     const grid = document.getElementById('cal-grid');
     grid.innerHTML = '';
 
-    // Day headers
     DAY_HEADERS.forEach(d => {
       const h = document.createElement('div');
       h.className = 'cal-day-header'; h.textContent = d;
       grid.appendChild(h);
     });
 
-    const firstDay = new Date(calYear, calMonth, 1).getDay();
-    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-    const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
-    const today = new Date();
+    const firstDay     = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth  = new Date(calYear, calMonth + 1, 0).getDate();
+    const daysInPrev   = new Date(calYear, calMonth, 0).getDate();
+    const today        = new Date();
 
-    // Prev month filler
     for (let i = firstDay - 1; i >= 0; i--) {
       const cell = document.createElement('div');
       cell.className = 'cal-day other-month';
@@ -1600,15 +1589,13 @@
       grid.appendChild(cell);
     }
 
-    // Current month days
     for (let d = 1; d <= daysInMonth; d++) {
       const cell = document.createElement('div');
       const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
       cell.className = `cal-day${isToday ? ' today' : ''}`;
       cell.innerHTML = `<div class="cal-day-num">${d}</div>`;
 
-      // Find bookings on this date
-      const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dateStr    = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const dayBookings = allBookings.filter(b => b.walk_date === dateStr && b.status !== 'denied' && b.status !== 'cancelled');
 
       dayBookings.forEach(b => {
@@ -1622,9 +1609,8 @@
       grid.appendChild(cell);
     }
 
-    // Next month filler
     const totalCells = firstDay + daysInMonth;
-    const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    const remaining  = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
     for (let i = 1; i <= remaining; i++) {
       const cell = document.createElement('div');
       cell.className = 'cal-day other-month';
@@ -1646,7 +1632,6 @@
     const popup = document.getElementById('cal-popup');
     document.getElementById('popup-title').textContent = `${b.customer_name} — ${fmtDate(b.walk_date)}`;
 
-    // Recalculate price
     const durMins  = parseInt(b.duration) || 0;
     const dogCount = parseInt(b.dog_count) || 1;
     const dogSizes = (b.dog_size || '').split(', ');
@@ -1664,7 +1649,6 @@
       <div class="popup-row"><strong>Status:</strong> <span style="color:${b.status==='approved'?'var(--dsage)':'var(--dgold)'}">${b.status}</span></div>
     `;
 
-    // Position popup near click
     const x = Math.min(e.clientX, window.innerWidth - 340);
     const y = Math.min(e.clientY + 10, window.innerHeight - 220);
     popup.style.left = x + 'px';
@@ -1716,7 +1700,7 @@
   });
 
   function renderBookings() {
-    const list = document.getElementById('bookings-list');
+    const list     = document.getElementById('bookings-list');
     const filtered = currentFilter === 'all' ? allBookings : allBookings.filter(b => b.status === currentFilter);
     if (!filtered.length) {
       const label = currentFilter === 'all' ? '' : currentFilter + ' ';
@@ -1793,8 +1777,7 @@
 
     card.querySelector('.btn-sms').addEventListener('click', e => {
       e.stopPropagation();
-      const email = b.customer_email || '';
-      if (email) window.open(`mailto:${email}`, '_blank');
+      if (b.customer_email) window.open(`mailto:${b.customer_email}`, '_blank');
     });
 
     return card;
@@ -1811,7 +1794,6 @@
         ? `Great news! Your walk for ${b.dog_name} on ${fmtDate(b.walk_date)} at ${fmtTime(b.start_time)} is confirmed! See you soon. — Vienna Dog Walking`
         : `Unfortunately we are unable to accommodate your walk request for ${b.dog_name} on ${fmtDate(b.walk_date)}. Please visit walkers.dog to book another time. — Vienna Dog Walking`;
 
-      // Recalculate price from stored booking data
       const durMins  = parseInt(b.duration) || 0;
       const dogCount = parseInt(b.dog_count) || 1;
       const dogSizes = (b.dog_size || '').split(', ');
@@ -1856,7 +1838,7 @@
   // TRACK MY BOOKING
   // ══════════════════════════════════════
   document.getElementById('track-btn').addEventListener('click', async () => {
-    const email = document.getElementById('track-email').value.trim();
+    const email  = document.getElementById('track-email').value.trim();
     const result = document.getElementById('track-result');
     if (!email) { result.innerHTML = '<p style="color:var(--red);font-size:0.85rem;">Please enter your email.</p>'; return; }
 
@@ -1878,16 +1860,16 @@
       }
 
       result.innerHTML = data.map(b => {
-        const canCancel = b.status === 'pending' || b.status === 'approved';
-        const walkDate = b.walk_date ? new Date(b.walk_date + 'T12:00:00') : null;
+        const canCancel  = b.status === 'pending' || b.status === 'approved';
+        const walkDate   = b.walk_date ? new Date(b.walk_date + 'T12:00:00') : null;
         const hoursUntil = walkDate ? (walkDate - new Date()) / 36e5 : null;
-        const cancelOk = canCancel && hoursUntil !== null && hoursUntil >= 24;
+        const cancelOk   = canCancel && hoursUntil !== null && hoursUntil >= 24;
 
         return `<div class="booking-result-card" style="margin-bottom:0.75rem;">
           <span class="res-status ${b.status || 'pending'}">${b.status || 'pending'}</span>
           <div class="res-row"><span>🐕 Dog(s):</span>${b.dog_name || '—'} (${b.dog_size || '—'})</div>
           <div class="res-row"><span>🗓 Date:</span>${b.walk_date || '—'}</div>
-          <div class="res-row"><span>⏱ Time:</span>${fmtTimeTrack(b.start_time)} for ${b.duration} min</div>
+          <div class="res-row"><span>⏱ Time:</span>${fmtTime(b.start_time)} for ${b.duration} min</div>
           <div class="res-row"><span>📍 Address:</span>${b.address || '—'}</div>
           <div class="res-row"><span>💵 Price:</span>${calcPriceFromBooking(b)}</div>
           ${cancelOk ? `<button class="btn-cancel-booking" onclick="cancelBooking(${b.id}, '${b.customer_email}', '${b.dog_name}', '${b.walk_date}')">Cancel Booking</button>` : ''}
@@ -1900,14 +1882,6 @@
       result.innerHTML = '<p style="font-size:0.85rem;color:var(--red);">Something went wrong. Please try again.</p>';
     }
   });
-
-  function fmtTimeTrack(t) {
-    if (!t) return '—';
-    const [h, m] = t.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const dh = h > 12 ? h - 12 : h === 0 ? 12 : h;
-    return `${dh}:${String(m).padStart(2,'0')} ${ampm}`;
-  }
 
   function calcPriceFromBooking(b) {
     const durMins  = parseInt(b.duration) || 0;
@@ -1931,14 +1905,12 @@
 
       const custName = bData.customer_name || 'Valued Customer';
 
-      // Email to customer — sorry to see you go
       await sendEmailTo(email, custName, {
-        to_name:        custName,
         customer_name:  custName,
         customer_email: email,
         dog_name:       dogName,
         walk_date:      walkDate,
-        start_time:     fmtTimeTrack(bData.start_time),
+        start_time:     fmtTime(bData.start_time),
         duration:       bData.duration || '',
         address:        bData.address || '',
         walk_day:       bData.walk_day || '',
@@ -1949,13 +1921,12 @@
         status_message: `We're sorry to see you go! Your walk for ${dogName} on ${walkDate} has been successfully cancelled. We would love to know why — feel free to reply to this email with any feedback. Hope to see you and ${dogName} again soon! Visit walkers.dog to rebook anytime.`,
       });
 
-      // Email to owner — cancellation notification
       await sendEmail({
         customer_name:  custName,
         customer_email: email,
         dog_name:       dogName,
         walk_date:      walkDate,
-        start_time:     fmtTimeTrack(bData.start_time),
+        start_time:     fmtTime(bData.start_time),
         duration:       bData.duration || '',
         address:        bData.address || '',
         walk_day:       bData.walk_day || '',
@@ -1976,30 +1947,13 @@
   // ══════════════════════════════════════
   // EMAIL (EmailJS)
   // ══════════════════════════════════════
-  // Sends to YOU (the owner) using the To Email set in the template
   async function sendEmail(params) {
     try {
-      console.log('Sending owner email with params:', params);
-      const result = await emailjs.send(EJS_SERVICE_ID, EJS_OWNER_TEMPLATE, params);
-      console.log('Owner email result:', result);
+      await emailjs.send(EJS_SERVICE_ID, EJS_OWNER_TEMPLATE, params);
     } catch (err) {
       console.error('EmailJS owner email error:', err);
     }
   }
 
-  // Sends to a SPECIFIC email address (customer) by overriding the To Email
   async function sendEmailTo(toEmail, toName, params) {
     try {
-      await emailjs.send(EJS_SERVICE_ID, EJS_CUSTOMER_TEMPLATE, {
-        ...params,
-        to_email: toEmail,
-        to_name:  toName,
-      });
-    } catch (err) {
-      console.error('EmailJS customer email error:', err);
-    }
-  }
-
-  // ══════════════════════════════════════
-  // TOAST
-  // ══════════════════════════�
