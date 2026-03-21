@@ -985,13 +985,13 @@
       <div class="section-label" style="color:var(--sage);">Get In Touch</div>
       <p style="font-size:0.88rem;color:var(--mid-gray);margin-bottom:1.5rem;">Have a question before booking? Reach out and I'll get back to you as soon as possible!</p>
       <div class="contact-options">
-        <a href="/cdn-cgi/l/email-protection#443325282f2136376a322d212a2a256a202b2337042329252d286a272b29" class="contact-option">
+        <button onclick="window.location.href='mai'+'lto:walkers.vienna.dogs@gmai'+'l.com'" class="contact-option" style="border:none;cursor:pointer;width:100%;text-align:left;">
           <span class="contact-icon">📧</span>
           <div>
             <div class="contact-label">Email Us</div>
             <div class="contact-value">Click to send email</div>
           </div>
-        </a>
+        </button>
         <a href="tel:+17038995913" class="contact-option">
           <span class="contact-icon">📞</span>
           <div>
@@ -1011,7 +1011,7 @@
       </div>
       <div class="footer-col">
         <div class="footer-heading">Contact Us</div>
-        <p>📧 <a href="/cdn-cgi/l/email-protection#c0b7a1acaba5b2b3eeb6a9a5aeaea1eea4afa7b380a7ada1a9aceea3afad">Email Us</a></p>
+        <p>📧 <a href="#" onclick="window.location.href='mai'+'lto:walkers.vienna.dogs@gmai'+'l.com';return false;">Email Us</a></p>
         <p>📞 <a href="tel:+17038995913">(703) 899-5913</a></p>
       </div>
       <div class="footer-col">
@@ -1933,7 +1933,7 @@
           <div class="res-row"><span>⏱ Time:</span>${fmtTimeTrack(b.start_time)} for ${b.duration} min</div>
           <div class="res-row"><span>📍 Address:</span>${b.address || '—'}</div>
           <div class="res-row"><span>💵 Price:</span>${calcPriceFromBooking(b)}</div>
-          <p style="font-size:0.78rem;color:var(--mid-gray);margin-top:0.75rem;">Need to cancel? <a href="mailto:walkers.vienna.dogs@gmail.com" style="color:var(--brown);">Email us</a> or call <a href="tel:+17038995913" style="color:var(--brown);">(703) 899-5913</a>.</p>
+          <p style="font-size:0.78rem;color:var(--mid-gray);margin-top:0.75rem;">Need to cancel? <a href="#" onclick="window.location.href='mai'+'lto:walkers.vienna.dogs@gmai'+'l.com';return false;" style="color:var(--brown);">Email us</a> or call <a href="tel:+17038995913" style="color:var(--brown);">(703) 899-5913</a>.</p>
         </div>`).join('');
 
     } catch (err) {
