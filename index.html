@@ -1399,6 +1399,20 @@
   walkDateInput.max = maxDate.toISOString().split('T')[0];
 
   walkDateInput.addEventListener('change', function() {
+    const chosen = new Date(this.value + 'T12:00:00');
+    const minD = new Date(); minD.setDate(minD.getDate() + 7);
+    minD.setHours(0,0,0,0);
+
+    // Reject if less than 7 days away
+    if (chosen < minD) {
+      showToast('Please pick a date at least 7 days from today.', 'error');
+      this.value = '';
+      selectedTime = null;
+      document.getElementById('time-slots-wrap').classList.remove('visible');
+      setError('f-walkdate', true);
+      return;
+    }
+
     const dayName = getDayNameFromDate(this.value);
     if (!dayName || !AVAILABLE_DAYS.includes(dayName)) {
       showToast(`Sorry, ${dayName || 'that day'} is not available. Please pick a different date.`, 'error');
