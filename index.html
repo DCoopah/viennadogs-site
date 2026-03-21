@@ -1011,7 +1011,7 @@
       </div>
       <div class="footer-col">
         <div class="footer-heading">Contact Us</div>
-        <p>📧 <a href="mailto:walkers.vienna.dogs@gmail.com">Email Us</a></p>
+        <p>📧 <a href="/cdn-cgi/l/email-protection#c0b7a1acaba5b2b3eeb6a9a5aeaea1eea4afa7b380a7ada1a9aceea3afad">Email Us</a></p>
         <p>📞 <a href="tel:+17038995913">(703) 899-5913</a></p>
       </div>
       <div class="footer-col">
@@ -1124,7 +1124,7 @@
 <div id="toast"></div>
 
 <!-- Google Places (loaded dynamically) -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false">
   // ══════════════════════════════════════
   // CONFIG
   // ══════════════════════════════════════
@@ -1975,4 +1975,28 @@
     }
   }
 
-  // Sends to a SP
+  // Sends to a SPECIFIC email address (customer)
+  async function sendEmailTo(toEmail, toName, params) {
+    try {
+      await emailjs.send(EJS_SERVICE_ID, EJS_CUSTOMER_TEMPLATE, {
+        ...params,
+        to_email: toEmail,
+        to_name:  toName,
+      });
+    } catch (err) {
+      console.error('EmailJS customer email error:', err);
+    }
+  }
+
+  // ══════════════════════════════════════
+  // TOAST
+  // ══════════════════════════════════════
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    setTimeout(() => { t.className = ''; }, 3500);
+  }
+</script>
+</body>
+</html>
