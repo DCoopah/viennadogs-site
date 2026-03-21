@@ -948,7 +948,7 @@
       </div>
 
       <div class="form-footer">
-        <p class="footer-note">By submitting, you agree to our cancellation policy. You'll receive an email once your walk is verified.</p>
+        <p class="footer-note">By submitting, you agree to our terms of service. You'll receive an email once your walk is verified.</p>
         <button class="btn-submit" id="submit-btn" type="button">
           <span class="btn-text">Request Walk</span>
           <div class="spinner"></div>
@@ -960,7 +960,6 @@
       <div class="success-icon">🐾</div>
       <h2>Walk Requested!</h2>
       <p>You'll receive an email shortly confirming your booking is under review. We'll reach out to approve or suggest an alternative time.</p>
-      <button class="btn-track-link" onclick="document.getElementById('track-section').scrollIntoView({behavior:'smooth'})">Track my booking ↓</button>
     </div>
   </div>
 
@@ -968,7 +967,7 @@
   <div class="track-wrap" id="track-section">
     <div class="track-card">
       <div class="section-label" style="color:var(--sage);">Track My Booking</div>
-      <p style="font-size:0.88rem;color:var(--mid-gray);margin-bottom:1.25rem;">Enter the email you used to book and we'll show your booking status.</p>
+      <p style="font-size:0.88rem;color:var(--mid-gray);margin-bottom:1.25rem;">Enter the email you used to book and we'll show your booking status. To cancel, please contact us directly.</p>
       <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
         <div class="field" style="flex:1;min-width:200px;">
           <input type="email" id="track-email" placeholder="your@email.com"/>
@@ -986,11 +985,11 @@
       <div class="section-label" style="color:var(--sage);">Get In Touch</div>
       <p style="font-size:0.88rem;color:var(--mid-gray);margin-bottom:1.5rem;">Have a question before booking? Reach out and I'll get back to you as soon as possible!</p>
       <div class="contact-options">
-        <a href="mailto:walkers.vienna.dogs@gmail.com" class="contact-option">
+        <a href="/cdn-cgi/l/email-protection#443325282f2136376a322d212a2a256a202b2337042329252d286a272b29" class="contact-option">
           <span class="contact-icon">📧</span>
           <div>
-            <div class="contact-label">Email</div>
-            <div class="contact-value"><span class="__cf_email__" data-cfemail="483f2924232d3a3b663e212d262629662c272f3b082f25292124662b2725">[email&#160;protected]</span></div>
+            <div class="contact-label">Email Us</div>
+            <div class="contact-value">Click to send email</div>
           </div>
         </a>
         <a href="tel:+17038995913" class="contact-option">
@@ -1012,12 +1011,18 @@
       </div>
       <div class="footer-col">
         <div class="footer-heading">Contact Us</div>
-        <p>📧 <a href="mailto:walkers.vienna.dogs@gmail.com">walkers.vienna.dogs@gmail.com</a></p>
+        <p>📧 <a href="mailto:walkers.vienna.dogs@gmail.com">Email Us</a></p>
         <p>📞 <a href="tel:+17038995913">(703) 899-5913</a></p>
       </div>
       <div class="footer-col">
-        <div class="footer-heading">Cancellation Policy</div>
-        <p>Cancellations must be made at least <strong>24 hours in advance</strong> for a full refund. Cancellations within 24 hours will be charged 50% of the booking fee.</p>
+        <div class="footer-heading">Hours</div>
+        <p>Mon: 3:30–5:30 PM</p>
+        <p>Tue: 5:30–7:00 PM</p>
+        <p>Wed: 3:30–7:00 PM</p>
+        <p>Thu: 3:30–5:30 PM</p>
+        <p>Fri: 5:30–7:00 PM</p>
+        <p>Sat: 9:00 AM–10:00 PM</p>
+        <p>Sun: 9:00 AM–8:00 PM</p>
       </div>
     </div>
     <div class="footer-bottom">© 2026 Vienna Dog Walking · walkers.dog</div>
@@ -1086,7 +1091,6 @@
         <button class="filter-btn" data-filter="pending">Pending</button>
         <button class="filter-btn" data-filter="approved">Approved</button>
         <button class="filter-btn" data-filter="denied">Denied</button>
-        <button class="filter-btn" data-filter="cancelled">Cancelled</button>
       </div>
       <div id="bookings-list">
         <div class="loading-dots">Loading bookings…</div>
@@ -1120,7 +1124,7 @@
 <div id="toast"></div>
 
 <!-- Google Places (loaded dynamically) -->
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   // ══════════════════════════════════════
   // CONFIG
   // ══════════════════════════════════════
@@ -1921,23 +1925,16 @@
         return;
       }
 
-      result.innerHTML = data.map(b => {
-        const canCancel = b.status === 'pending' || b.status === 'approved';
-        const walkDate = b.walk_date ? new Date(b.walk_date + 'T12:00:00') : null;
-        const hoursUntil = walkDate ? (walkDate - new Date()) / 36e5 : null;
-        const cancelOk = canCancel && hoursUntil !== null && hoursUntil >= 24;
-
-        return `<div class="booking-result-card" style="margin-bottom:0.75rem;">
+      result.innerHTML = data.map(b => `
+        <div class="booking-result-card" style="margin-bottom:0.75rem;">
           <span class="res-status ${b.status || 'pending'}">${b.status || 'pending'}</span>
           <div class="res-row"><span>🐕 Dog(s):</span>${b.dog_name || '—'} (${b.dog_size || '—'})</div>
           <div class="res-row"><span>🗓 Date:</span>${b.walk_date || '—'}</div>
           <div class="res-row"><span>⏱ Time:</span>${fmtTimeTrack(b.start_time)} for ${b.duration} min</div>
           <div class="res-row"><span>📍 Address:</span>${b.address || '—'}</div>
           <div class="res-row"><span>💵 Price:</span>${calcPriceFromBooking(b)}</div>
-          ${cancelOk ? `<button class="btn-cancel-booking" onclick="cancelBooking(${b.id}, '${b.customer_email}', '${b.dog_name}', '${b.walk_date}')">Cancel Booking</button>` : ''}
-          ${canCancel && !cancelOk && hoursUntil !== null && hoursUntil < 24 ? '<p style="font-size:0.78rem;color:var(--red);margin-top:0.5rem;">Cancellation window has passed (less than 24 hours away).</p>' : ''}
-        </div>`;
-      }).join('');
+          <p style="font-size:0.78rem;color:var(--mid-gray);margin-top:0.75rem;">Need to cancel? <a href="mailto:walkers.vienna.dogs@gmail.com" style="color:var(--brown);">Email us</a> or call <a href="tel:+17038995913" style="color:var(--brown);">(703) 899-5913</a>.</p>
+        </div>`).join('');
 
     } catch (err) {
       console.error(err);
@@ -1964,59 +1961,6 @@
     return `$${(base + durFee + dogFee + sizeFee).toFixed(2)}`;
   }
 
-  async function cancelBooking(id, email, dogName, walkDate) {
-    if (!confirm(`Cancel your walk for ${dogName} on ${walkDate}? This cannot be undone.`)) return;
-    try {
-      const { data: bData, error: bErr } = await sb.from('bookings').select('*').eq('id', id).single();
-      if (bErr) throw bErr;
-
-      const { error } = await sb.from('bookings').update({ status: 'cancelled' }).eq('id', id);
-      if (error) throw error;
-
-      const custName = bData.customer_name || 'Valued Customer';
-
-      // Email to customer — sorry to see you go
-      await sendEmailTo(email, custName, {
-        to_name:        custName,
-        customer_name:  custName,
-        customer_email: email,
-        dog_name:       dogName,
-        walk_date:      walkDate,
-        start_time:     fmtTimeTrack(bData.start_time),
-        duration:       bData.duration || '',
-        address:        bData.address || '',
-        walk_day:       bData.walk_day || '',
-        dog_count:      bData.dog_count || '',
-        dog_size:       bData.dog_size || '',
-        payment_method: bData.payment_method || 'Cash',
-        price:          calcPriceFromBooking(bData),
-        status_message: `We're sorry to see you go! Your walk for ${dogName} on ${walkDate} has been successfully cancelled. We would love to know why — feel free to reply to this email with any feedback. Hope to see you and ${dogName} again soon! Visit walkers.dog to rebook anytime.`,
-      });
-
-      // Email to owner — cancellation notification
-      await sendEmail({
-        customer_name:  custName,
-        customer_email: email,
-        dog_name:       dogName,
-        walk_date:      walkDate,
-        start_time:     fmtTimeTrack(bData.start_time),
-        duration:       bData.duration || '',
-        address:        bData.address || '',
-        walk_day:       bData.walk_day || '',
-        dog_count:      bData.dog_count || '',
-        dog_size:       bData.dog_size || '',
-        payment_method: bData.payment_method || 'Cash',
-        price:          calcPriceFromBooking(bData),
-      });
-
-      document.getElementById('track-btn').click();
-      showToast('Your booking has been cancelled.', 'error');
-    } catch (err) {
-      console.error(err);
-      showToast('Something went wrong. Please try again.', 'error');
-    }
-  }
-
   // ══════════════════════════════════════
   // EMAIL (EmailJS)
   // ══════════════════════════════════════
@@ -2031,21 +1975,4 @@
     }
   }
 
-  // Sends to a SPECIFIC email address (customer) by overriding the To Email
-  async function sendEmailTo(toEmail, toName, params) {
-    try {
-      await emailjs.send(EJS_SERVICE_ID, EJS_CUSTOMER_TEMPLATE, {
-        ...params,
-        to_email: toEmail,
-        to_name:  toName,
-      });
-    } catch (err) {
-      console.error('EmailJS customer email error:', err);
-    }
-  }
-
-</script>
-</body>
-</html>
-    } catch (err) {
-      console.error('E
+  // Sends to a SP
