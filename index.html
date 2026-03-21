@@ -475,6 +475,42 @@
   }
   .btn-cancel-booking:hover { background: rgba(185,74,58,0.08); }
 
+  /* FAQ */
+  .faq-wrap { max-width: 700px; margin: 0 auto 3rem; padding: 0 1.5rem; }
+  .faq-header { text-align: center; margin-bottom: 2rem; }
+  .faq-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    letter-spacing: -0.03em; color: var(--dark); margin-top: 0.75rem;
+  }
+  .faq-title em { font-style: italic; color: var(--brown); }
+  .faq-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .faq-item {
+    background: var(--white); border: 1px solid var(--warm-gray);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .faq-q {
+    width: 100%; background: transparent; border: none;
+    padding: 1.1rem 1.5rem; font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 600; color: var(--dark);
+    cursor: pointer; display: flex; justify-content: space-between;
+    align-items: center; gap: 1rem; text-align: left;
+    transition: background 0.2s;
+  }
+  .faq-q:hover { background: var(--cream); }
+  .faq-q.open { background: var(--cream); color: var(--brown); }
+  .faq-chevron { font-size: 1.2rem; font-weight: 300; flex-shrink: 0; transition: transform 0.25s; }
+  .faq-q.open .faq-chevron { transform: rotate(45deg); }
+  .faq-a {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+    padding: 0 1.5rem;
+  }
+  .faq-a.open { max-height: 300px; padding: 0 1.5rem 1.1rem; }
+  .faq-a p { font-size: 0.9rem; color: var(--mid-gray); line-height: 1.7; }
+  .faq-a strong { color: var(--dark); }
+
   /* CONTACT SECTION */
   .contact-wrap { max-width: 700px; margin: 0 auto 3rem; padding: 0 1.5rem; }
   .contact-card {
@@ -979,6 +1015,70 @@
   </div>
 
   <!-- CANCELLATION POLICY & CONTACT -->
+  <!-- FAQ SECTION -->
+  <div class="faq-wrap">
+    <div class="faq-header">
+      <div class="hero-eyebrow">Common Questions</div>
+      <h2 class="faq-title">Frequently Asked <em>Questions</em></h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How much does a walk cost?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Pricing starts at $10 base + a duration fee ($15 for 30 min, $22.50 for 45 min, $30 for 60 min, $45 for 90 min). Additional dogs and larger sizes have small add-on fees. You'll see a full price breakdown in the booking summary before you submit!</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How far in advance do I need to book?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">
+          <p>All bookings must be made at least <strong>7 days in advance</strong>. This helps ensure I can plan the best walk for your dog!</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How do I know my dog is safe?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Your dog's safety is my top priority. I stay with your dog for the entire walk, stick to safe routes in the Vienna area, and always keep dogs on a leash. I treat every dog like my own!</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What if it rains?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Light rain is no problem — dogs still need their walks! In the case of severe weather like thunderstorms, I'll reach out to reschedule at a time that works for both of us.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How do I pay?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Payment is <strong>cash only</strong>, due at the time of the walk. Make sure to have the exact amount ready!</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How long are the walks?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">
+          <p>You can choose from 30, 45, 60, or 90 minute walks depending on what your dog needs. Not sure? Most dogs do great with a 45–60 minute walk!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- CONTACT SECTION -->
   <div class="contact-wrap">
     <div class="contact-card">
@@ -1897,6 +1997,24 @@
       showToast('Something went wrong. Please try again.', 'error');
       if (acceptBtn) acceptBtn.disabled = false;
       if (denyBtn)   denyBtn.disabled   = false;
+    }
+  }
+
+  // ══════════════════════════════════════
+  // FAQ
+  // ══════════════════════════════════════
+  function toggleFaq(btn) {
+    const answer = btn.nextElementSibling;
+    const isOpen = btn.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.faq-q').forEach(q => {
+      q.classList.remove('open');
+      q.nextElementSibling.classList.remove('open');
+    });
+    // Open clicked if it was closed
+    if (!isOpen) {
+      btn.classList.add('open');
+      answer.classList.add('open');
     }
   }
 
