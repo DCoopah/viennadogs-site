@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vienna Dog Walking — Flier</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @media print {
+    body { margin: 0; padding: 0; background: white; }
+    .no-print { display: none !important; }
+    .flier { 
+      box-shadow: none !important; 
+      margin: 0 !important;
+      width: 100% !important;
+      min-height: unset !important;
+    }
+  }
+
+  body {
+    background: #E8E3DC;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    min-height: 100vh;
+  }
+
+  .no-print {
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-print {
+    background: #1A1A18;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-print:hover { background: #6B4E3D; }
+
+  /* FLIER — 8.5x11 at 96dpi = 816x1056px */
+  .flier {
+    width: 816px;
+    min-height: 1056px;
+    background: #FAF7F2;
+    border-radius: 4px;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.18);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* TOP ACCENT BAR */
+  .top-bar {
+    height: 12px;
+    background: linear-gradient(90deg, #6B4E3D, #7A8C6E, #C9A84C);
+  }
+
+  /* HERO */
+  .hero {
+    background: #1A1A18;
+    padding: 2.2rem 3.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(107,78,61,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '🐾';
+    position: absolute;
+    bottom: -10px; right: 3rem;
+    font-size: 8rem;
+    opacity: 0.08;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7A8C6E;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .hero-eyebrow::before { content: '🐾'; font-size: 0.9rem; }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3.2rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: #FAF7F2;
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 em { font-style: italic; color: #C9A07A; }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: #7A7268;
+    margin-top: 0.75rem;
+    font-weight: 400;
+  }
+
+  /* BODY */
+  .body {
+    padding: 1.75rem 3.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* TAGLINE */
+  .tagline {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: #1A1A18;
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+    border-left: 3px solid #C9A84C;
+    padding-left: 1rem;
+  }
+  .tagline em { font-style: italic; color: #6B4E3D; }
+
+  /* INFO GRID */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .info-card {
+    background: white;
+    border: 1.5px solid #E8E3DC;
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+  }
+  .info-card-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7A8C6E;
+    margin-bottom: 0.4rem;
+  }
+  .info-card-value {
+    font-size: 0.92rem;
+    color: #1A1A18;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  /* HOURS */
+  .hours-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+  .hour-pill {
+    background: #FAF7F2;
+    border: 1px solid #E8E3DC;
+    border-radius: 8px;
+    padding: 0.4rem 0.6rem;
+    text-align: center;
+  }
+  .hour-day { font-size: 0.65rem; font-weight: 700; color: #7A8C6E; text-transform: uppercase; letter-spacing: 0.06em; }
+  .hour-time { font-size: 0.7rem; color: #1A1A18; font-weight: 500; margin-top: 0.15rem; }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #E8E3DC, transparent);
+  }
+
+  /* BOTTOM SECTION */
+  .bottom {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .contact-block { display: flex; flex-direction: column; gap: 0.6rem; }
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.92rem;
+    color: #1A1A18;
+    font-weight: 500;
+  }
+  .contact-icon {
+    width: 32px; height: 32px;
+    background: #1A1A18;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  .contact-label { font-size: 0.65rem; color: #9B9590; font-weight: 400; display: block; }
+  .contact-val { font-weight: 600; color: #1A1A18; }
+
+  /* QR CODE */
+  .qr-block { text-align: center; flex-shrink: 0; }
+  .qr-box {
+    width: 140px; height: 140px;
+    background: white;
+    border: 2px solid #E8E3DC;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+  }
+  .qr-box img { width: 120px; height: 120px; }
+  .qr-label { font-size: 0.72rem; color: #9B9590; font-weight: 500; }
+  .qr-url { font-size: 0.82rem; color: #6B4E3D; font-weight: 700; }
+
+  /* FOOTER */
+  .flier-footer {
+    background: #1A1A18;
+    padding: 1rem 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .flier-footer-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    color: #FAF7F2;
+  }
+  .flier-footer-logo span { color: #C9A07A; font-style: italic; }
+  .flier-footer-tag {
+    font-size: 0.75rem;
+    color: #5A5A58;
+    font-weight: 500;
+  }
+
+  /* bottom accent */
+  .bottom-bar {
+    height: 6px;
+    background: linear-gradient(90deg, #C9A84C, #7A8C6E, #6B4E3D);
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <button class="btn-print" onclick="window.print()">🖨️ Print Flier</button>
+</div>
+
+<div class="flier">
+  <div class="top-bar"></div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Vienna, VA · Neighborhood Dog Walking</div>
+    <h1>Vienna<br/><em>Dog Walking</em></h1>
+    <p class="hero-sub">Professional, reliable walks for your furry family member.</p>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <p class="tagline">
+      Hi, I'm <em>Daniel Cooper</em> — a 13-year-old dog lover<br/>
+      from your neighborhood. I treat every dog like my own. 🐾
+    </p>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-label">Walk Durations</div>
+        <div class="info-card-value">
+          30 min · 45 min · 60 min · 90 min<br/>
+          <span style="font-size:0.82rem;color:#9B9590;">Starting at just $25</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Serving</div>
+        <div class="info-card-value">
+          Vienna, VA and surrounding areas<br/>
+          <span style="font-size:0.82rem;color:#9B9590;">Book at least 7 days in advance</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7A8C6E;margin-bottom:0.6rem;">Available Hours</div>
+      <div class="hours-grid">
+        <div class="hour-pill"><div class="hour-day">Mon</div><div class="hour-time">3:30–5:30p</div></div>
+        <div class="hour-pill"><div class="hour-day">Tue</div><div class="hour-time">5:30–7:00p</div></div>
+        <div class="hour-pill"><div class="hour-day">Wed</div><div class="hour-time">3:30–7:00p</div></div>
+        <div class="hour-pill"><div class="hour-day">Thu</div><div class="hour-time">3:30–5:30p</div></div>
+        <div class="hour-pill"><div class="hour-day">Fri</div><div class="hour-time">5:30–7:00p</div></div>
+        <div class="hour-pill"><div class="hour-day">Sat</div><div class="hour-time">9am–10pm</div></div>
+        <div class="hour-pill"><div class="hour-day">Sun</div><div class="hour-time">9am–8:00p</div></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="bottom">
+      <div class="contact-block">
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7A8C6E;margin-bottom:0.25rem;">Get In Touch</div>
+        <div class="contact-item">
+          <div class="contact-icon">📞</div>
+          <div>
+            <span class="contact-label">Call or text</span>
+            <span class="contact-val">(703) 899-5913</span>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">🌐</div>
+          <div>
+            <span class="contact-label">Book online</span>
+            <span class="contact-val">walkers.dog</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="qr-block">
+        <div class="qr-box">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://walkers.dog&color=1A1A18&bgcolor=FFFFFF" alt="QR Code"/>
+        </div>
+        <div class="qr-label">Scan to book</div>
+        <div class="qr-url">walkers.dog</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="flier-footer">
+    <div class="flier-footer-logo">Vienna<span> Dog Walking</span></div>
+    <div class="flier-footer
