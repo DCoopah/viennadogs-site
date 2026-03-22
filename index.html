@@ -427,6 +427,36 @@
   #success-screen h2 { font-family: 'DM Serif Display', serif; font-size: 1.8rem; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
   #success-screen p { color: var(--mid-gray); max-width: 400px; margin: 0 auto; line-height: 1.7; }
 
+  /* CONTRACT */
+  .contract-box {
+    background: var(--cream); border: 1.5px solid var(--warm-gray);
+    border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;
+    max-height: 220px; overflow-y: auto;
+  }
+  .contract-text { font-size: 0.85rem; color: var(--mid-gray); margin-bottom: 0.75rem; }
+  .contract-list { padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .contract-list li { font-size: 0.82rem; color: var(--dark); line-height: 1.6; }
+  .contract-list li strong { color: var(--brown); }
+
+  .check-label {
+    display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer;
+  }
+  .check-label input[type="checkbox"] { display: none; }
+  .check-box {
+    width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px;
+    background: var(--cream); border: 2px solid var(--warm-gray);
+    border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .check-label input:checked + .check-box {
+    background: var(--brown); border-color: var(--brown);
+  }
+  .check-label input:checked + .check-box::after {
+    content: '✓'; color: white; font-size: 0.8rem; font-weight: 700;
+  }
+  .check-text { font-size: 0.85rem; color: var(--dark); line-height: 1.5; }
+  #f-contract.has-error .check-box { border-color: var(--red); }
+
   /* TRACK BOOKING */
   .track-wrap { max-width: 700px; margin: 0 auto 3rem; padding: 0 1.5rem; }
   .track-card {
@@ -1007,8 +1037,32 @@
         <p style="font-size:0.82rem;color:var(--mid-gray);margin-top:0.75rem;">Fill in your details above to see a summary.</p>
       </div>
 
+      <!-- CONTRACT -->
+      <div class="form-section" id="contract-section">
+        <div class="section-label">Service Agreement</div>
+        <div class="contract-box">
+          <p class="contract-text">By booking a walk with Vienna Dog Walking, you agree to the following terms:</p>
+          <ul class="contract-list">
+            <li><strong>Liability:</strong> Vienna Dog Walking is not responsible for any injuries sustained by the dog during the walk, including but not limited to cuts, sprains, or illness.</li>
+            <li><strong>Escape/Missing:</strong> Vienna Dog Walking is not responsible if a dog escapes or goes missing due to a broken leash, collar, or harness provided by the owner.</li>
+            <li><strong>Walker Safety:</strong> Vienna Dog Walking is not responsible for any injuries sustained by the walker caused by the dog, including bites or falls.</li>
+            <li><strong>Aggressive Dogs:</strong> The owner must disclose any history of aggression, biting, or reactive behavior before the walk. Failure to disclose may result in immediate cancellation.</li>
+            <li><strong>Cancellations:</strong> No refunds for same-day cancellations. Please contact us at least 24 hours in advance to cancel or reschedule.</li>
+            <li><strong>Right to Refuse:</strong> Vienna Dog Walking reserves the right to refuse or cancel service at any time for any reason, including but not limited to safety concerns.</li>
+          </ul>
+        </div>
+        <div class="contract-check" id="f-contract">
+          <label class="check-label">
+            <input type="checkbox" id="contract-agree"/>
+            <span class="check-box"></span>
+            <span class="check-text">I have read and agree to the Service Agreement above. I confirm all information provided is accurate. <span class="req">*</span></span>
+          </label>
+          <span class="error-msg" id="contract-error" style="display:none;color:var(--red);font-size:0.78rem;margin-top:0.4rem;">You must agree to the terms before submitting.</span>
+        </div>
+      </div>
+
       <div class="form-footer">
-        <p class="footer-note">By submitting, you agree to our terms of service. You'll receive an email once your walk is verified.</p>
+        <p class="footer-note">You'll receive an email once your walk is verified.</p>
         <button class="btn-submit" id="submit-btn" type="button">
           <span class="btn-text">Request Walk</span>
           <div class="spinner"></div>
@@ -1619,6 +1673,18 @@
     setError('f-walkdate', !dateOk); if (!dateOk) ok = false;
 
     setError('f-time', !selectedTime); if (!selectedTime) ok = false;
+
+    const agreed = document.getElementById('contract-agree').checked;
+    const contractField = document.getElementById('f-contract');
+    const contractError = document.getElementById('contract-error');
+    if (!agreed) {
+      contractField.classList.add('has-error');
+      contractError.style.display = 'block';
+      ok = false;
+    } else {
+      contractField.classList.remove('has-error');
+      contractError.style.display = 'none';
+    }
 
     return ok;
   }
